@@ -9,7 +9,11 @@ add_executable(pico-iie
     main.c
 )
 
-target_link_libraries(pico-iie pico_stdlib)
+pico_generate_pio_header(pico-iie ${CMAKE_CURRENT_LIST_DIR}/parallel.pio)
+
+#pico_generate_pio_header(pico-iie ${CMAKE_CURRENT_LIST_DIR}/parallel.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR})
+
+target_link_libraries(pico-iie pico_stdlib hardware_pio hardware_pwm)
 
 pico_add_extra_outputs(pico-iie)
 
