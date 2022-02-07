@@ -4,7 +4,7 @@
 
 loop:
     pull
-    out pins, 1
+    out pins, 16
     jmp loop
 
 % c-sdk {
