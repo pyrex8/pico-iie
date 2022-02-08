@@ -2,6 +2,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "hardware/pwm.h"
+#include "hardware/dma.h"
 #include "hardware/irq.h"
 #include "parallel.pio.h"
 #include "pico/binary_info.h"
@@ -14,7 +15,7 @@ const uint LED_PIN = 25;
 const uint TEST_PIN = 20;
 const uint VSYNC_PIN = 17;
 const uint HSYNC_PIN = 19;
-const uint R0_PIN = 10;
+const uint R0_PIN = 0;
 
 PIO pio;
 uint offset;

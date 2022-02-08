@@ -3,17 +3,31 @@
 .program parallel
 
 loop:
-    pull
+    pull block
     out pins, 16
     jmp loop
 
 % c-sdk {
 static inline void parallel_program_init(PIO pio, uint sm, uint offset, uint pin) {
     pio_sm_config c = parallel_program_get_default_config(offset);
-    sm_config_set_out_pins(&c, pin, 1);
     pio_gpio_init(pio, pin);
-    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
-
+    pio_gpio_init(pio, pin + 1);
+    pio_gpio_init(pio, pin + 2);
+    pio_gpio_init(pio, pin + 3);
+    pio_gpio_init(pio, pin + 4);
+    pio_gpio_init(pio, pin + 5);
+    pio_gpio_init(pio, pin + 6);
+    pio_gpio_init(pio, pin + 7);
+    pio_gpio_init(pio, pin + 8);
+    pio_gpio_init(pio, pin + 9);
+    pio_gpio_init(pio, pin + 10);
+    pio_gpio_init(pio, pin + 11);
+    pio_gpio_init(pio, pin + 12);
+    pio_gpio_init(pio, pin + 13);
+    pio_gpio_init(pio, pin + 14);
+    pio_gpio_init(pio, pin + 15);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 16, true);
+    sm_config_set_out_pins(&c, pin, 16);
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
 }
