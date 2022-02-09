@@ -10,16 +10,19 @@
 
 
 #define VREG_VOLTAGE_1_30 0b1111    ///< 1.30v
+#define SCAN_LINE_BUFFER_LEN 390
 
 const uint LED_PIN = 25;
-const uint TEST_PIN = 20;
+const uint TEST_PIN = 21;
 const uint VSYNC_PIN = 17;
 const uint HSYNC_PIN = 19;
+const uint PCLK_PIN = 20;
 const uint R0_PIN = 0;
 
 PIO pio;
 uint offset;
 uint sm;
+int pio_dma_chan;
 
 uint hsync_slice;
 uint hsync_channel;
@@ -27,11 +30,17 @@ uint hsync_channel;
 uint vsync_slice;
 uint vsync_channel;
 
+int pclk_slice;
+uint pclk_channel;
+
 uint16_t scan_line;
 uint16_t h_pixel;
 
+uint32_t scan_line_buffer[SCAN_LINE_BUFFER_LEN] = {0};
+
 void vga_scan_line(void)
 {
+    dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     pwm_clear_irq(hsync_slice);
 
     scan_line = pwm_get_counter(vsync_slice) / 78 / 2;
@@ -43,12 +52,12 @@ void vga_scan_line(void)
         {
             h_pixel = pwm_get_counter(hsync_slice) / 22;
         }
-        pio_sm_put_blocking(pio, sm, 0xFFFF);
+//        pio_sm_put_blocking(pio, sm, 0xFFFF);
         while( h_pixel < 44 + 280)
         {
             h_pixel = pwm_get_counter(hsync_slice) / 22;
         }
-        pio_sm_put_blocking(pio, sm, 0);
+//        pio_sm_put_blocking(pio, sm, 0);
     }
 }
 
@@ -66,6 +75,12 @@ int main()
    gpio_set_dir(LED_PIN, GPIO_OUT);
    gpio_init(TEST_PIN);
    gpio_set_dir(TEST_PIN, GPIO_OUT);
+
+   for (int i = 0; i < SCAN_LINE_BUFFER_LEN; i++)
+   {
+       scan_line_buffer[i] = (i & 0x01) * 0xFFFF;
+   }
+
 
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);
@@ -92,7 +107,30 @@ int main()
     pwm_set_wrap(vsync_slice, 40949);
     pwm_set_chan_level(vsync_slice, vsync_channel, 40793);
 
-    pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice));
+    gpio_set_function(PCLK_PIN, GPIO_FUNC_PWM);
+    pclk_slice = pwm_gpio_to_slice_num(PCLK_PIN);
+    pclk_channel = pwm_gpio_to_channel(PCLK_PIN);
+    pwm_set_clkdiv_int_frac (pclk_slice, 1, 0);
+    pwm_set_wrap(pclk_slice, 21);
+    pwm_set_chan_level(pclk_slice, pclk_channel, 10);
+
+    pio_dma_chan = dma_claim_unused_channel(true);
+    dma_channel_config pio_dma_chan_config = dma_channel_get_default_config(pio_dma_chan);
+
+    channel_config_set_transfer_data_size(&pio_dma_chan_config, DMA_SIZE_16);
+    channel_config_set_read_increment(&pio_dma_chan_config, true);
+    channel_config_set_write_increment(&pio_dma_chan_config, false);
+    channel_config_set_dreq(&pio_dma_chan_config, DREQ_PWM_WRAP0 + pclk_slice);
+
+    dma_channel_configure(
+        pio_dma_chan,
+        &pio_dma_chan_config,
+        &pio->txf[sm],
+        scan_line_buffer,
+        SCAN_LINE_BUFFER_LEN,
+        true);
+
+    pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 
     while (1)
     {
