@@ -10,7 +10,7 @@
 
 
 #define VREG_VOLTAGE_1_30 0b1111    ///< 1.30v
-#define SCAN_LINE_BUFFER_LEN 390
+#define SCAN_LINE_BUFFER_LEN (280 + 44)
 
 const uint LED_PIN = 25;
 const uint TEST_PIN = 21;
@@ -38,7 +38,7 @@ uint16_t h_pixel;
 
 uint32_t scan_line_buffer[SCAN_LINE_BUFFER_LEN] = {0};
 
-void vga_scan_line(void)
+void __not_in_flash_func(vga_scan_line)(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     pwm_clear_irq(hsync_slice);
@@ -78,7 +78,10 @@ int main()
 
    for (int i = 0; i < SCAN_LINE_BUFFER_LEN; i++)
    {
-       scan_line_buffer[i] = (i & 0x01) * 0xFFFF;
+       if (i > 44)
+       {
+           scan_line_buffer[i] = 0xFFFF;
+       }
    }
 
 
@@ -139,9 +142,9 @@ int main()
 
         gpio_put(TEST_PIN, 0);
         gpio_put(LED_PIN, 0);
-        sleep_ms(100);
+        sleep_ms(500);
         gpio_put(TEST_PIN, 1);
         gpio_put(LED_PIN, 1);
-        sleep_ms(100);
+        sleep_ms(500);
     }
 }
