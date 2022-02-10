@@ -36,7 +36,9 @@ uint pclk_channel;
 uint16_t scan_line;
 uint16_t h_pixel;
 
-uint32_t scan_line_buffer[SCAN_LINE_BUFFER_LEN] = {0};
+uint16_t scan_line_buffer[SCAN_LINE_BUFFER_LEN] = {0};
+uint16_t scan_line_blank[SCAN_LINE_BUFFER_LEN] = {0};
+uint16_t scan_line_image[SCAN_LINE_BUFFER_LEN] = {0};
 
 void __not_in_flash_func(vga_scan_line)(void)
 {
@@ -47,17 +49,11 @@ void __not_in_flash_func(vga_scan_line)(void)
 
     if ((scan_line > 40) && (scan_line < 40 + 192))
     {
-        h_pixel = 0;
-        while( h_pixel < 44)
-        {
-            h_pixel = pwm_get_counter(hsync_slice) / 22;
-        }
-//        pio_sm_put_blocking(pio, sm, 0xFFFF);
-        while( h_pixel < 44 + 280)
-        {
-            h_pixel = pwm_get_counter(hsync_slice) / 22;
-        }
-//        pio_sm_put_blocking(pio, sm, 0);
+
+    }
+    else
+    {
+        
     }
 }
 
@@ -78,9 +74,9 @@ int main()
 
    for (int i = 0; i < SCAN_LINE_BUFFER_LEN; i++)
    {
-       if (i > 44)
+       if ((i > 44) && (i < SCAN_LINE_BUFFER_LEN - 10))
        {
-           scan_line_buffer[i] = 0xFFFF;
+           scan_line_buffer[i] = (i * 0xFF) & 0xFFFF;
        }
    }
 
