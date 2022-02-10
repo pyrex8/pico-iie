@@ -9,9 +9,37 @@
 #include "pico/binary_info.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 
+#define VREG_VOLTAGE_1_30 0b1111    // 1.30v
+#define CLK_FREQUENCY_HZ 270000000  // overclocking at 270MHz
+#define CLK_FREQUENCY_KHZ (CLK_FREQUENCY_HZ / 1000)
 
-#define VREG_VOLTAGE_1_30 0b1111    ///< 1.30v
-#define SCAN_LINE_BUFFER_LEN (280 + 44 + 1)
+#define LED_BLINK_DELAY_MS 500
+
+// Pixel freq 25.175 for VGA Signal 640 x 480 @ 60 Hz
+#define CLK_TO_PCLK_DIVIDER 22         // 270MHz / 21 = 12.857MHz
+
+#define PCLK_DIVIDER 1
+#define PCLK_PWM_COUNT (CLK_TO_PCLK_DIVIDER - 1)
+#define PCLK_PWM_VALUE (CLK_TO_PCLK_DIVIDER / 2)
+
+#define HSYNC_DIVIDER 1
+#define HSYNC_PWM_COUNT 8579
+#define HSYNC_PWM_VALUE 7658
+
+#define VSYNC_DIVIDER 110
+#define VSYNC_PWM_COUNT 40949
+#define VSYNC_PWM_VALUE 40793
+
+#define VGA_SCAN_LINES 525
+#define VGA_TO_VIDEO_SCAN_LINES_DIVIDER 2
+#define VIDEO_SCAN_LINES (VGA_SCAN_LINES / VGA_TO_VIDEO_SCAN_LINES_DIVIDER)
+#define VIDEO_SCAN_LINE_OFFSET 40
+
+#define VIDEO_RESOLUTION_X 280
+#define VIDEO_RESOLUTION_Y 192
+
+#define VIDEO_SCAN_BUFFER_OFFSET 44
+#define VIDEO_SCAN_BUFFER_LEN (VIDEO_RESOLUTION_X + VIDEO_SCAN_BUFFER_OFFSET + 1)
 
 const uint LED_PIN = 25;
 const uint TEST_PIN = 21;
@@ -37,9 +65,9 @@ uint pclk_channel;
 uint16_t scan_line;
 uint16_t h_pixel;
 
-uint16_t scan_line_buffer[SCAN_LINE_BUFFER_LEN] = {0};
-uint16_t scan_line_blank[SCAN_LINE_BUFFER_LEN] = {0};
-uint16_t scan_line_image[SCAN_LINE_BUFFER_LEN] = {0};
+uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
+uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
+uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 
 void __not_in_flash_func(vga_scan_line)(void)
 {
@@ -48,39 +76,34 @@ void __not_in_flash_func(vga_scan_line)(void)
 
     scan_line = pwm_get_counter(vsync_slice) / 78 / 2;
 
-    if ((scan_line > 40) && (scan_line < 40 + 192))
+    if ((scan_line > VIDEO_SCAN_LINE_OFFSET) &&
+        (scan_line < VIDEO_SCAN_LINE_OFFSET + VIDEO_RESOLUTION_Y))
     {
-        memcpy(scan_line_buffer, scan_line_image, SCAN_LINE_BUFFER_LEN * 2);
+        memcpy(scan_line_buffer, scan_line_image, VIDEO_SCAN_BUFFER_LEN * 2);
     }
     else
     {
-        memcpy(scan_line_buffer, scan_line_blank, SCAN_LINE_BUFFER_LEN * 2);
+        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
 }
 
 int main()
 {
-    // Overclocking Pico with up to 420MHz eventually
    vreg_set_voltage(VREG_VOLTAGE_1_30);
-    // overclocking at 270MHz
-   set_sys_clock_khz(270000, true);
-    // set_sys_clock_khz(420000, true);
-
-    bi_decl(bi_program_description("pico-iie"));
+   set_sys_clock_khz(CLK_FREQUENCY_KHZ, true);
 
    gpio_init(LED_PIN);
    gpio_set_dir(LED_PIN, GPIO_OUT);
    gpio_init(TEST_PIN);
    gpio_set_dir(TEST_PIN, GPIO_OUT);
 
-   for (int i = 0; i < SCAN_LINE_BUFFER_LEN; i++)
+   for (int i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
    {
-       if ((i > 44) && (i < SCAN_LINE_BUFFER_LEN - 1))
+       if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_LEN - 1))
        {
            scan_line_image[i] = 0xFFFF;
        }
    }
-
 
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);
@@ -96,23 +119,23 @@ int main()
     irq_set_exclusive_handler(PWM_IRQ_WRAP, vga_scan_line);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
-    pwm_set_clkdiv_int_frac (hsync_slice, 1, 0);
-    pwm_set_wrap(hsync_slice, 8579);
-    pwm_set_chan_level(hsync_slice, hsync_channel, 7658);
+    pwm_set_clkdiv_int_frac (hsync_slice, HSYNC_DIVIDER, 0);
+    pwm_set_wrap(hsync_slice, HSYNC_PWM_COUNT);
+    pwm_set_chan_level(hsync_slice, hsync_channel, HSYNC_PWM_VALUE);
 
     gpio_set_function(VSYNC_PIN, GPIO_FUNC_PWM);
     vsync_slice = pwm_gpio_to_slice_num(VSYNC_PIN);
     vsync_channel = pwm_gpio_to_channel(VSYNC_PIN);
-    pwm_set_clkdiv_int_frac (vsync_slice, 110, 0);
-    pwm_set_wrap(vsync_slice, 40949);
-    pwm_set_chan_level(vsync_slice, vsync_channel, 40793);
+    pwm_set_clkdiv_int_frac (vsync_slice, VSYNC_DIVIDER, 0);
+    pwm_set_wrap(vsync_slice, VSYNC_PWM_COUNT);
+    pwm_set_chan_level(vsync_slice, vsync_channel, VSYNC_PWM_VALUE);
 
     gpio_set_function(PCLK_PIN, GPIO_FUNC_PWM);
     pclk_slice = pwm_gpio_to_slice_num(PCLK_PIN);
     pclk_channel = pwm_gpio_to_channel(PCLK_PIN);
-    pwm_set_clkdiv_int_frac (pclk_slice, 1, 0);
-    pwm_set_wrap(pclk_slice, 21);
-    pwm_set_chan_level(pclk_slice, pclk_channel, 10);
+    pwm_set_clkdiv_int_frac (pclk_slice, PCLK_DIVIDER, 0);
+    pwm_set_wrap(pclk_slice, PCLK_PWM_COUNT);
+    pwm_set_chan_level(pclk_slice, pclk_channel, PCLK_PWM_VALUE);
 
     pio_dma_chan = dma_claim_unused_channel(true);
     dma_channel_config pio_dma_chan_config = dma_channel_get_default_config(pio_dma_chan);
@@ -127,7 +150,7 @@ int main()
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        SCAN_LINE_BUFFER_LEN,
+        VIDEO_SCAN_BUFFER_LEN,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
@@ -139,9 +162,9 @@ int main()
 
         gpio_put(TEST_PIN, 0);
         gpio_put(LED_PIN, 0);
-        sleep_ms(500);
+        sleep_ms(LED_BLINK_DELAY_MS);
         gpio_put(TEST_PIN, 1);
         gpio_put(LED_PIN, 1);
-        sleep_ms(500);
+        sleep_ms(LED_BLINK_DELAY_MS);
     }
 }
