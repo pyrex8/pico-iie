@@ -22,12 +22,26 @@
 #define PCLK_PWM_COUNT (CLK_TO_PCLK_DIVIDER - 1)
 #define PCLK_PWM_VALUE (CLK_TO_PCLK_DIVIDER / 2)
 
+// Vertical refresh 31.46875 kHz
+#define VGA_H_VISIBLE_AREA 640
+#define VGA_H_FRONT_PORCH 16
+#define VGA_H_SYNC_PULSE 96
+#define VGA_H_BACK_PORCH 48
+#define VGA_H_WHOLE_LINE 800
+
 #define HSYNC_DIVIDER 1
-#define HSYNC_PWM_COUNT 8579
-#define HSYNC_PWM_VALUE 7658
+#define HSYNC_PWM_COUNT 8580 - 1 // 8580 / 22 = 390 pixel clocks
+#define HSYNC_PWM_VALUE 7658     //
+
+// Screen refresh rate 60 Hz
+#define VGA_V_VISIBLE_AREA 480
+#define VGA_V_FRONT_PORCH 10
+#define VGA_V_SYNC_PULSE 2
+#define VGA_V_BACK_PORCH 33
+#define VGA_V_WHOLE_FRAME 525
 
 #define VSYNC_DIVIDER 110
-#define VSYNC_PWM_COUNT 40949
+#define VSYNC_PWM_COUNT 40950 - 1 // 40950 / 525 scan lines = 78
 #define VSYNC_PWM_VALUE 40793
 
 #define VGA_SCAN_LINES 525
