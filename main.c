@@ -1,3 +1,4 @@
+#include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
@@ -10,7 +11,7 @@
 
 
 #define VREG_VOLTAGE_1_30 0b1111    ///< 1.30v
-#define SCAN_LINE_BUFFER_LEN (280 + 44)
+#define SCAN_LINE_BUFFER_LEN (280 + 44 + 1)
 
 const uint LED_PIN = 25;
 const uint TEST_PIN = 21;
@@ -49,11 +50,11 @@ void __not_in_flash_func(vga_scan_line)(void)
 
     if ((scan_line > 40) && (scan_line < 40 + 192))
     {
-
+        memcpy(scan_line_buffer, scan_line_image, SCAN_LINE_BUFFER_LEN * 2);
     }
     else
     {
-        
+        memcpy(scan_line_buffer, scan_line_blank, SCAN_LINE_BUFFER_LEN * 2);
     }
 }
 
@@ -74,9 +75,9 @@ int main()
 
    for (int i = 0; i < SCAN_LINE_BUFFER_LEN; i++)
    {
-       if ((i > 44) && (i < SCAN_LINE_BUFFER_LEN - 10))
+       if ((i > 44) && (i < SCAN_LINE_BUFFER_LEN - 1))
        {
-           scan_line_buffer[i] = (i * 0xFF) & 0xFFFF;
+           scan_line_image[i] = 0xFFFF;
        }
    }
 
