@@ -15,7 +15,7 @@
 
 #define LED_BLINK_DELAY_MS 500
 
-// Pixel freq 25.175 for VGA Signal 640 x 480 @ 60 Hz
+// Pixel freq 25.175MHz for VGA Signal 640 x 480 @ 60 Hz
 #define PCLK_DIVIDER_INTEGER 10
 #define PCLK_DIVIDER_FRACT 12
 #define PCLK_PWM_COUNT 1
@@ -29,8 +29,8 @@
 #define VGA_H_WHOLE_LINE 800
 
 #define HSYNC_DIVIDER 1
-#define HSYNC__DIVIDER_INTEGER 10
-#define HSYNC__DIVIDER_FRACT 12
+#define HSYNC__DIVIDER_INTEGER (PCLK_DIVIDER_INTEGER)
+#define HSYNC__DIVIDER_FRACT (PCLK_DIVIDER_FRACT)
 #define HSYNC_PWM_COUNT (VGA_H_WHOLE_LINE - 1)
 #define HSYNC_PWM_VALUE (VGA_H_WHOLE_LINE - VGA_H_SYNC_PULSE)
 
@@ -41,13 +41,14 @@
 #define VGA_V_BACK_PORCH 33
 #define VGA_V_WHOLE_FRAME 525
 
-
-#define VSYN
+// // 800 / 16 = 50
+#define VSYNC_CLK_MULTIPLIER 16
+#define VSYNC_SCAN_MULTIPLIER (VGA_H_WHOLE_LINE / VSYNC_CLK_MULTIPLIER)
 
 #define VSYNC_DIVIDER_INTEGER 172 // 16 * (10 + 12 / 16)
 #define VSYNC_DIVIDER_FRACT 0
-#define VSYNC_PWM_COUNT (VGA_V_WHOLE_FRAME * 50 - 1) // 40950 / 525 scan lines = 78
-#define VSYNC_PWM_VALUE VGA_V_WHOLE_FRAME * 50 - VGA_V_SYNC_PULSE * 50
+#define VSYNC_PWM_COUNT (VGA_V_WHOLE_FRAME * VSYNC_SCAN_MULTIPLIER - 1)
+#define VSYNC_PWM_VALUE (VSYNC_SCAN_MULTIPLIER * (VGA_V_WHOLE_FRAME - VGA_V_SYNC_PULSE))
 
 #define VGA_TO_VIDEO_SCAN_LINES_DIVIDER 2
 #define VIDEO_SCAN_LINES (VGA_V_WHOLE_FRAME / VGA_TO_VIDEO_SCAN_LINES_DIVIDER)
@@ -56,8 +57,9 @@
 #define VIDEO_RESOLUTION_Y 192
 
 #define VIDEO_SCAN_BUFFER_OFFSET ((VGA_H_BACK_PORCH + (VGA_H_VISIBLE_AREA - VIDEO_RESOLUTION_X * 2) / 2) / 2) //44
-#define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2) / 2) //40
+#define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2) / 2)   //40.5 rounded down
 
+// one last value of zero otherwise last pixel repeats to the end of the scan line
 #define VIDEO_SCAN_BUFFER_LEN (VIDEO_RESOLUTION_X + VIDEO_SCAN_BUFFER_OFFSET + 1)
 
 const uint LED_PIN = 25;
@@ -93,7 +95,7 @@ void __not_in_flash_func(vga_scan_line)(void)
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     pwm_clear_irq(hsync_slice);
 
-    scan_line = pwm_get_counter(vsync_slice) / 50 / 2;
+    scan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2;
 
     if ((scan_line > VIDEO_SCAN_LINE_OFFSET) &&
         (scan_line < VIDEO_SCAN_LINE_OFFSET + VIDEO_RESOLUTION_Y))
