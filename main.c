@@ -16,11 +16,10 @@
 #define LED_BLINK_DELAY_MS 500
 
 // Pixel freq 25.175 for VGA Signal 640 x 480 @ 60 Hz
-#define CLK_TO_PCLK_DIVIDER 22         // 270MHz / 21 = 12.857MHz
-
-#define PCLK_DIVIDER 1
-#define PCLK_PWM_COUNT (CLK_TO_PCLK_DIVIDER - 1)
-#define PCLK_PWM_VALUE (CLK_TO_PCLK_DIVIDER / 2)
+#define PCLK_DIVIDER_INTEGER 10
+#define PCLK_DIVIDER_FRACT 12
+#define PCLK_PWM_COUNT 1
+#define PCLK_PWM_VALUE 1
 
 // Vertical refresh 31.46875 kHz
 #define VGA_H_VISIBLE_AREA 640
@@ -30,8 +29,10 @@
 #define VGA_H_WHOLE_LINE 800
 
 #define HSYNC_DIVIDER 1
-#define HSYNC_PWM_COUNT 8580 - 1 // 8580 / 22 = 390 pixel clocks
-#define HSYNC_PWM_VALUE 7658     //
+#define HSYNC__DIVIDER_INTEGER 10
+#define HSYNC__DIVIDER_FRACT 12
+#define HSYNC_PWM_COUNT (VGA_H_WHOLE_LINE - 1)
+#define HSYNC_PWM_VALUE (VGA_H_WHOLE_LINE - VGA_H_SYNC_PULSE)
 
 // Screen refresh rate 60 Hz
 #define VGA_V_VISIBLE_AREA 480
@@ -40,19 +41,23 @@
 #define VGA_V_BACK_PORCH 33
 #define VGA_V_WHOLE_FRAME 525
 
-#define VSYNC_DIVIDER 110
-#define VSYNC_PWM_COUNT 40950 - 1 // 40950 / 525 scan lines = 78
-#define VSYNC_PWM_VALUE 40793
 
-#define VGA_SCAN_LINES 525
+#define VSYN
+
+#define VSYNC_DIVIDER_INTEGER 172 // 16 * (10 + 12 / 16)
+#define VSYNC_DIVIDER_FRACT 0
+#define VSYNC_PWM_COUNT (VGA_V_WHOLE_FRAME * 50 - 1) // 40950 / 525 scan lines = 78
+#define VSYNC_PWM_VALUE VGA_V_WHOLE_FRAME * 50 - VGA_V_SYNC_PULSE * 50
+
 #define VGA_TO_VIDEO_SCAN_LINES_DIVIDER 2
-#define VIDEO_SCAN_LINES (VGA_SCAN_LINES / VGA_TO_VIDEO_SCAN_LINES_DIVIDER)
-#define VIDEO_SCAN_LINE_OFFSET 40
+#define VIDEO_SCAN_LINES (VGA_V_WHOLE_FRAME / VGA_TO_VIDEO_SCAN_LINES_DIVIDER)
 
 #define VIDEO_RESOLUTION_X 280
 #define VIDEO_RESOLUTION_Y 192
 
-#define VIDEO_SCAN_BUFFER_OFFSET 44
+#define VIDEO_SCAN_BUFFER_OFFSET ((VGA_H_BACK_PORCH + (VGA_H_VISIBLE_AREA - VIDEO_RESOLUTION_X * 2) / 2) / 2) //44
+#define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2) / 2) //40
+
 #define VIDEO_SCAN_BUFFER_LEN (VIDEO_RESOLUTION_X + VIDEO_SCAN_BUFFER_OFFSET + 1)
 
 const uint LED_PIN = 25;
@@ -88,7 +93,7 @@ void __not_in_flash_func(vga_scan_line)(void)
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     pwm_clear_irq(hsync_slice);
 
-    scan_line = pwm_get_counter(vsync_slice) / 78 / 2;
+    scan_line = pwm_get_counter(vsync_slice) / 50 / 2;
 
     if ((scan_line > VIDEO_SCAN_LINE_OFFSET) &&
         (scan_line < VIDEO_SCAN_LINE_OFFSET + VIDEO_RESOLUTION_Y))
@@ -133,21 +138,21 @@ int main()
     irq_set_exclusive_handler(PWM_IRQ_WRAP, vga_scan_line);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
-    pwm_set_clkdiv_int_frac (hsync_slice, HSYNC_DIVIDER, 0);
+    pwm_set_clkdiv_int_frac (hsync_slice, HSYNC__DIVIDER_INTEGER, HSYNC__DIVIDER_FRACT);
     pwm_set_wrap(hsync_slice, HSYNC_PWM_COUNT);
     pwm_set_chan_level(hsync_slice, hsync_channel, HSYNC_PWM_VALUE);
 
     gpio_set_function(VSYNC_PIN, GPIO_FUNC_PWM);
     vsync_slice = pwm_gpio_to_slice_num(VSYNC_PIN);
     vsync_channel = pwm_gpio_to_channel(VSYNC_PIN);
-    pwm_set_clkdiv_int_frac (vsync_slice, VSYNC_DIVIDER, 0);
+    pwm_set_clkdiv_int_frac (vsync_slice, VSYNC_DIVIDER_INTEGER, VSYNC_DIVIDER_FRACT);
     pwm_set_wrap(vsync_slice, VSYNC_PWM_COUNT);
     pwm_set_chan_level(vsync_slice, vsync_channel, VSYNC_PWM_VALUE);
 
     gpio_set_function(PCLK_PIN, GPIO_FUNC_PWM);
     pclk_slice = pwm_gpio_to_slice_num(PCLK_PIN);
     pclk_channel = pwm_gpio_to_channel(PCLK_PIN);
-    pwm_set_clkdiv_int_frac (pclk_slice, PCLK_DIVIDER, 0);
+    pwm_set_clkdiv_int_frac (pclk_slice, PCLK_DIVIDER_INTEGER, PCLK_DIVIDER_FRACT);
     pwm_set_wrap(pclk_slice, PCLK_PWM_COUNT);
     pwm_set_chan_level(pclk_slice, pclk_channel, PCLK_PWM_VALUE);
 
@@ -171,9 +176,6 @@ int main()
 
     while (1)
     {
-
-        // 1.8us on Pi Pico with 270MHz overclocking on one core
-
         gpio_put(TEST_PIN, 0);
         gpio_put(LED_PIN, 0);
         sleep_ms(LED_BLINK_DELAY_MS);
