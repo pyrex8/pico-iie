@@ -60,7 +60,7 @@
 #define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2) / 2)   //40.5 rounded down
 
 // one last value of zero otherwise last pixel repeats to the end of the scan line
-#define VIDEO_SCAN_BUFFER_LEN (VIDEO_RESOLUTION_X + VIDEO_SCAN_BUFFER_OFFSET + 1)
+#define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
 
 const uint LED_PIN = 25;
 const uint TEST_PIN = 21;
@@ -93,6 +93,7 @@ uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 void __not_in_flash_func(vga_scan_line)(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
+    gpio_put(TEST_PIN, 1);
     pwm_clear_irq(hsync_slice);
 
     scan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2;
@@ -106,6 +107,7 @@ void __not_in_flash_func(vga_scan_line)(void)
     {
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
+    gpio_put(TEST_PIN, 0);
 }
 
 int main()
@@ -120,9 +122,13 @@ int main()
 
    for (int i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
    {
-       if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_LEN - 1))
+       if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X))
        {
            scan_line_image[i] = 0xFFFF;
+       }
+       else
+       {
+           scan_line_image[i] = 0x0000;
        }
    }
 
@@ -178,10 +184,8 @@ int main()
 
     while (1)
     {
-        gpio_put(TEST_PIN, 0);
         gpio_put(LED_PIN, 0);
         sleep_ms(LED_BLINK_DELAY_MS);
-        gpio_put(TEST_PIN, 1);
         gpio_put(LED_PIN, 1);
         sleep_ms(LED_BLINK_DELAY_MS);
     }
