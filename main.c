@@ -55,12 +55,20 @@
 
 #define VIDEO_RESOLUTION_X 280
 #define VIDEO_RESOLUTION_Y 192
+#define VIDEO_BORDER_X ((VGA_H_VISIBLE_AREA / 2 - VIDEO_RESOLUTION_X) / 2)
+#define VIDEO_BORDER_Y ((VGA_V_VISIBLE_AREA / 2 - VIDEO_RESOLUTION_Y) / 2)
+// #define VIDEO_BORDER_Y 10
+
+#define VIDEO_COLOR 0 //0xFFFFF
+#define VIDEO_BORDER_COLOR ((0x1F<<6) & 0xFFFF)
 
 #define VIDEO_SCAN_BUFFER_OFFSET ((VGA_H_BACK_PORCH + (VGA_H_VISIBLE_AREA - VIDEO_RESOLUTION_X * 2) / 2) / 2) //44
 #define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2) / 2)   //40.5 rounded down
 
 // one last value of zero otherwise last pixel repeats to the end of the scan line
 #define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
+
+
 
 const uint LED_PIN = 25;
 const uint TEST_PIN = 21;
@@ -88,6 +96,7 @@ uint16_t h_pixel;
 
 uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
+uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 
 void __not_in_flash_func(vga_scan_line)(void)
@@ -105,7 +114,15 @@ void __not_in_flash_func(vga_scan_line)(void)
     }
     else
     {
-        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
+        if ((scan_line > VIDEO_SCAN_LINE_OFFSET - VIDEO_BORDER_Y) &&
+            (scan_line < VIDEO_SCAN_LINE_OFFSET + VIDEO_RESOLUTION_Y + VIDEO_BORDER_Y))
+        {
+            memcpy(scan_line_buffer, scan_line_border, VIDEO_SCAN_BUFFER_LEN * 2);
+        }
+        else
+        {
+            memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
+        }
     }
     gpio_put(TEST_PIN, 0);
 }
@@ -125,14 +142,18 @@ int main()
    {
        if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X))
        {
-           scan_line_image[i] = 0xFFFF;
+           scan_line_image[i] = VIDEO_COLOR;
+           scan_line_border[i] = VIDEO_BORDER_COLOR;
        }
        else
        {
-           scan_line_image[i] = (0x0<<10) & 0xFFFF;
+           if ((i > VIDEO_SCAN_BUFFER_OFFSET - VIDEO_BORDER_X) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X + VIDEO_BORDER_X))
+           {
+               scan_line_image[i] = VIDEO_BORDER_COLOR;
+               scan_line_border[i] = VIDEO_BORDER_COLOR;
+           }
        }
    }
-   scan_line_image[i] = 0x0000;
 
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);
