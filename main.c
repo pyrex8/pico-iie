@@ -120,7 +120,8 @@ int main()
    gpio_init(TEST_PIN);
    gpio_set_dir(TEST_PIN, GPIO_OUT);
 
-   for (int i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
+   int i = 0;
+   for (i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
    {
        if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X))
        {
@@ -128,9 +129,10 @@ int main()
        }
        else
        {
-           scan_line_image[i] = 0x0000;
+           scan_line_image[i] = (0x0<<10) & 0xFFFF;
        }
    }
+   scan_line_image[i] = 0x0000;
 
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);
@@ -144,6 +146,7 @@ int main()
     pwm_clear_irq(hsync_slice);
     pwm_set_irq_enabled(hsync_slice, true);
     irq_set_exclusive_handler(PWM_IRQ_WRAP, vga_scan_line);
+    irq_set_priority(PWM_IRQ_WRAP, 0);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
     pwm_set_clkdiv_int_frac (hsync_slice, HSYNC__DIVIDER_INTEGER, HSYNC__DIVIDER_FRACT);
