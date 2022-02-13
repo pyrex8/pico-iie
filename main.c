@@ -75,6 +75,15 @@ const uint HSYNC_PIN = 19;
 const uint PCLK_PIN = 20;
 const uint R0_PIN = 0;
 
+#define VGA_BLACK  0x0000
+#define VGA_GREEN  0x0608
+#define VGA_PURPLE 0xF9D6
+#define VGA_ORANGE 0x12DD
+#define VGA_BLUE   0xE502
+#define VGA_WHITE  0xFFDF
+
+const uint16_t hcolor[] = {VGA_BLACK, VGA_GREEN, VGA_PURPLE, VGA_WHITE, VGA_BLACK, VGA_ORANGE, VGA_BLUE, VGA_WHITE};
+
 PIO pio;
 uint offset;
 uint sm;
@@ -137,16 +146,11 @@ int main()
    {
        if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X))
        {
-           scan_line_image[i] = VIDEO_COLOR;
-           scan_line_border[i] = VIDEO_BORDER_COLOR;
+            scan_line_image[i] = hcolor[(i>>2) & 0x07];
        }
        else
        {
-           if ((i > VIDEO_SCAN_BUFFER_OFFSET - VIDEO_BORDER_X) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X + VIDEO_BORDER_X))
-           {
-               scan_line_image[i] = VIDEO_BORDER_COLOR;
-               scan_line_border[i] = VIDEO_BORDER_COLOR;
-           }
+            scan_line_image[i] = VGA_BLACK;
        }
    }
 
