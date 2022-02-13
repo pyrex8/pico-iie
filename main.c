@@ -72,7 +72,7 @@
 
 const uint VSYNC_PIN = 17;
 const uint HSYNC_PIN = 19;
-const uint PCLK_PIN = 20;
+const uint PCLK_PIN = 5;
 const uint R0_PIN = 0;
 
 #define VGA_BLACK  0x0000
@@ -109,7 +109,8 @@ uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 void __not_in_flash_func(vga_scan_line)(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
-    test_pin_high();
+    test0_pin_high();
+    test1_pin_high();
     pwm_clear_irq(hsync_slice);
 
     scan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2;
@@ -131,15 +132,16 @@ void __not_in_flash_func(vga_scan_line)(void)
             memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
         }
     }
-    test_pin_low();
+    test0_pin_low();
+    test1_pin_low();
 }
 
 int main()
 {
    clock_init();
    led_blink_init(BACKGROUND_LOOP_DELAY_MS);
-   test_pin_init();
-
+   test0_pin_init();
+   test1_pin_init();
 
    int i = 0;
    for (i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
