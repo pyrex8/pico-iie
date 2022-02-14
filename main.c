@@ -13,7 +13,7 @@
 #include "mcu/led.h"
 #include "mcu/test.h"
 
-#define BACKGROUND_LOOP_DELAY_MS 1600
+#define BACKGROUND_LOOP_DELAY_MS 16
 
 #define LED_BLINK_DELAY_MS 500
 
@@ -112,11 +112,12 @@ uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 
+uint8_t uart_char = 0;
+
 void __not_in_flash_func(vga_scan_line)(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
-    test1_pin_high();
     pwm_clear_irq(hsync_slice);
 
     scan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2;
@@ -139,7 +140,7 @@ void __not_in_flash_func(vga_scan_line)(void)
         }
     }
     test0_pin_low();
-    test1_pin_low();
+
 }
 
 int main()
@@ -219,12 +220,23 @@ int main()
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 
-    led_red_high();
-
     while (1)
     {
         led_blink_update(LED_BLINK_NORMAL);
         sleep_ms(BACKGROUND_LOOP_DELAY_MS);
-        uart_putc_raw(UART_ID, 'A');
+        if (uart_is_readable(UART_ID))
+        {
+            test1_pin_high();
+            uart_char = uart_getc(UART_ID);
+            test1_pin_low();
+            if (uart_char == 'a')
+            {
+                led_red_high();
+            }
+            if (uart_char == 's')
+            {
+                led_red_low();
+            }
+        }
     }
 }
