@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 
 const uint LED_PIN = LED_PIN_NUMBER;
+const uint TEST_RED_PIN = LED_RED_PIN_NUMBER;
 
 static uint32_t blink_delay[] =
 {
@@ -47,5 +48,20 @@ void led_blink_update(LedBlinkType blink_type)
         gpio_put(LED_PIN, 1);
       }
     }
+}
 
+void led_red_init(void)
+{
+    gpio_init(TEST_RED_PIN);
+    gpio_set_dir(TEST_RED_PIN, GPIO_OUT);
+}
+
+void led_red_low(void)
+{
+    gpio_put(TEST_RED_PIN, 0);
+}
+
+void led_red_high(void)
+{
+    gpio_put(TEST_RED_PIN, 1);
 }

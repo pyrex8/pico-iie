@@ -140,6 +140,7 @@ int main()
 {
    clock_init();
    led_blink_init(BACKGROUND_LOOP_DELAY_MS);
+   led_red_init();
    test0_pin_init();
    test1_pin_init();
 
@@ -206,6 +207,8 @@ int main()
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
+
+    led_red_high();
 
     while (1)
     {
