@@ -13,7 +13,7 @@
 #include "mcu/led.h"
 #include "mcu/test.h"
 
-#define BACKGROUND_LOOP_DELAY_MS 16
+#define BACKGROUND_LOOP_DELAY_MS 1600
 
 #define LED_BLINK_DELAY_MS 500
 
@@ -82,6 +82,12 @@ const uint R0_PIN = 0;
 #define VGA_BLUE   0xE502
 #define VGA_WHITE  0xFFDF
 
+#define UART_ID uart1
+#define UART_BAUD_RATE 230400
+
+#define UART_TX_PIN 20
+#define UART_RX_PIN 21
+
 const uint16_t hcolor[] = {VGA_BLACK, VGA_GREEN, VGA_PURPLE, VGA_WHITE, VGA_BLACK, VGA_ORANGE, VGA_BLUE, VGA_WHITE};
 
 PIO pio;
@@ -143,6 +149,11 @@ int main()
    led_red_init();
    test0_pin_init();
    test1_pin_init();
+
+   uart_init(UART_ID, UART_BAUD_RATE);
+   gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+   gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
 
    int i = 0;
    for (i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
@@ -214,5 +225,6 @@ int main()
     {
         led_blink_update(LED_BLINK_NORMAL);
         sleep_ms(BACKGROUND_LOOP_DELAY_MS);
+        uart_putc_raw(UART_ID, 'A');
     }
 }
