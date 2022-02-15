@@ -28,7 +28,7 @@
 #define LED_BLINK_DELAY_MS 500
 
 // Pixel freq 25.175MHz for VGA Signal 640 x 480 @ 60 Hz
-#define PCLK_DIVIDER_INTEGER 10
+#define PCLK_DIVIDER_INTEGER 16
 #define PCLK_DIVIDER_FRACT 12
 #define PCLK_PWM_COUNT 1
 #define PCLK_PWM_VALUE 1
@@ -53,11 +53,11 @@
 #define VGA_V_BACK_PORCH 33
 #define VGA_V_WHOLE_FRAME 525
 
-// // 800 / 16 = 50
-#define VSYNC_CLK_MULTIPLIER 16
+// // 800 / 8 = 100
+#define VSYNC_CLK_MULTIPLIER 8
 #define VSYNC_SCAN_MULTIPLIER (VGA_H_WHOLE_LINE / VSYNC_CLK_MULTIPLIER)
 
-#define VSYNC_DIVIDER_INTEGER 172 // 16 * (10 + 12 / 16)
+#define VSYNC_DIVIDER_INTEGER 134 // 8 * (16 + 12 / 16)
 #define VSYNC_DIVIDER_FRACT 0
 #define VSYNC_PWM_COUNT (VGA_V_WHOLE_FRAME * VSYNC_SCAN_MULTIPLIER - 1)
 #define VSYNC_PWM_VALUE (VSYNC_SCAN_MULTIPLIER * (VGA_V_WHOLE_FRAME - VGA_V_SYNC_PULSE))
@@ -336,19 +336,19 @@ int main(void)
 
     while (1)
     {
-        led_blink_update(LED_BLINK_NORMAL);
-        sleep_ms(BACKGROUND_LOOP_DELAY_MS);
-        if (uart_is_readable(UART_ID))
-        {
-            uart_char = uart_getc(UART_ID);
-            if (uart_char == 'a')
-            {
-                led_red_high();
-            }
-            if (uart_char == 's')
-            {
-                led_red_low();
-            }
-        }
+        // led_blink_update(LED_BLINK_NORMAL);
+        // sleep_ms(BACKGROUND_LOOP_DELAY_MS);
+        // if (uart_is_readable(UART_ID))
+        // {
+        //     uart_char = uart_getc(UART_ID);
+        //     if (uart_char == 'a')
+        //     {
+        //         led_red_high();
+        //     }
+        //     if (uart_char == 's')
+        //     {
+        //         led_red_low();
+        //     }
+        // }
     }
 }

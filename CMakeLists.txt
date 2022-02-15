@@ -33,3 +33,7 @@ target_link_libraries(
     pico_multicore)
 
 pico_add_extra_outputs(pico-iie)
+
+#pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
+#target_compile_definitions(slower_boot2 PRIVATE PICO_FLASH_SPI_CLKDIV=4)
+#pico_set_boot_stage2(pico-iie slower_boot2)
