@@ -21,6 +21,7 @@ target_link_libraries(
     hardware_vreg
     hardware_pio
     hardware_dma
-    hardware_pwm)
+    hardware_pwm
+    pico_multicore)
 
 pico_add_extra_outputs(pico-iie)

@@ -8,6 +8,7 @@
 #include "parallel.pio.h"
 #include "pico/binary_info.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
+#include "pico/multicore.h"
 
 #include "mcu/clock.h"
 #include "mcu/led.h"
@@ -118,6 +119,7 @@ void __not_in_flash_func(vga_scan_line)(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
+    multicore_fifo_push_blocking(0);
     pwm_clear_irq(hsync_slice);
 
     scan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2;
@@ -143,7 +145,18 @@ void __not_in_flash_func(vga_scan_line)(void)
 
 }
 
-int main()
+int core1_main(void)
+{
+
+    while (1)
+    {
+        multicore_fifo_pop_blocking();
+        test1_pin_high();
+        test1_pin_low();
+    }
+}
+
+int main(void)
 {
    clock_init();
    led_blink_init(BACKGROUND_LOOP_DELAY_MS);
@@ -154,6 +167,8 @@ int main()
    uart_init(UART_ID, UART_BAUD_RATE);
    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
+   multicore_launch_core1(core1_main);
 
 
    int i = 0;
@@ -226,9 +241,7 @@ int main()
         sleep_ms(BACKGROUND_LOOP_DELAY_MS);
         if (uart_is_readable(UART_ID))
         {
-            test1_pin_high();
             uart_char = uart_getc(UART_ID);
-            test1_pin_low();
             if (uart_char == 'a')
             {
                 led_red_high();
