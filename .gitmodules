@@ -1,0 +1,3 @@
+[submodule "m6502"]
+	path = m6502
+	url = https://github.com/pyrex8/m6502.git
