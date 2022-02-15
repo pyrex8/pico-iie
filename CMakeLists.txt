@@ -11,6 +11,14 @@ add_executable(
     mcu/clock.c
     mcu/led.c
     mcu/test.c
+    common/audio.c
+    common/disk.c
+    common/joystick.c
+    common/keyboard.c
+    common/ram.c
+    common/rom.c
+    common/video.c
+    m6502/c6502
 )
 
 pico_generate_pio_header(pico-iie ${CMAKE_CURRENT_LIST_DIR}/parallel.pio)

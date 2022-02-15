@@ -10,6 +10,15 @@
 #include "hardware/structs/vreg_and_chip_reset.h"
 #include "pico/multicore.h"
 
+#include "common/rom.h"
+#include "common/ram.h"
+#include "common/keyboard.h"
+#include "common/joystick.h"
+#include "common/audio.h"
+#include "common/video.h"
+#include "common/disk.h"
+#include "m6502/c6502.h"
+
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
@@ -71,6 +80,8 @@
 // one last value of zero otherwise last pixel repeats to the end of the scan line
 #define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
 
+#define VIDEO_SCAN_LINES_VISIBLE 192
+
 const uint VSYNC_PIN = 17;
 const uint HSYNC_PIN = 19;
 const uint PCLK_PIN = 5;
@@ -89,7 +100,29 @@ const uint R0_PIN = 0;
 #define UART_TX_PIN 20
 #define UART_RX_PIN 21
 
+typedef enum
+{
+    MEMORY_WRITE = 0,
+    MEMORY_READ
+} MemoryRWStatus;
+
+typedef enum
+{
+    VIDEO_TEXT_MODE = 0,
+    VIDEO_GRAPHICS_MODE
+} VideoModeStatus;
+
+typedef enum
+{
+    VIDEO_PAGE_1 = 0,
+    VIDEO_PAGE_2
+} VideoPageStatus;
+
 const uint16_t hcolor[] = {VGA_BLACK, VGA_GREEN, VGA_PURPLE, VGA_WHITE, VGA_BLACK, VGA_ORANGE, VGA_BLUE, VGA_WHITE};
+
+static C6502_interface interface_c;
+static uint8_t video_mode = VIDEO_TEXT_MODE;
+static uint8_t video_page = VIDEO_PAGE_1;
 
 PIO pio;
 uint offset;
@@ -114,6 +147,69 @@ uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 
 uint8_t uart_char = 0;
+
+void main_init(void)
+{
+    rom_init();
+    ram_init();
+    c6502_init();
+}
+
+void main_run(uint8_t clk_cycles)
+{
+    for(int i = 0; i < clk_cycles; i++)
+    {
+        c6502_update(&interface_c);
+        ram_update(interface_c.rw, interface_c.address, &interface_c.data);
+        rom_update(interface_c.rw, interface_c.address, &interface_c.data);
+//        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
+
+        keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
+        joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
+        // Disable speaker if using game audio
+//        speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
+        // game_update(interface_c.rw, interface_c.address, &interface_c.data);
+
+        if (interface_c.address == 0xC019)
+        {
+            if (scan_line < VIDEO_SCAN_LINES_VISIBLE)
+            {
+                interface_c.data = 0x80;
+            }
+            else
+            {
+                interface_c.data = 0;
+            }
+        }
+
+        if (interface_c.address == 0xC054)
+        {
+            video_page = VIDEO_PAGE_1;
+        }
+        if (interface_c.address == 0xC055)
+        {
+            video_page = VIDEO_PAGE_2;
+        }
+
+        if (interface_c.address == 0xC050)
+        {
+            video_mode = VIDEO_GRAPHICS_MODE;
+        }
+
+        if (interface_c.address == 0xC051)
+        {
+            video_mode = VIDEO_TEXT_MODE;
+        }
+
+        //$C100 - $C7FF (49408 - 51199): Peripheral Card Memory
+        if (interface_c.address == 0xC100)
+        {
+        }
+        if (interface_c.address == 0xC101)
+        {
+        }
+    }
+}
 
 void __not_in_flash_func(vga_scan_line)(void)
 {
@@ -152,6 +248,7 @@ int core1_main(void)
     {
         multicore_fifo_pop_blocking();
         test1_pin_high();
+        main_run(1);
         test1_pin_low();
     }
 }
@@ -169,6 +266,8 @@ int main(void)
    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
    multicore_launch_core1(core1_main);
+
+   main_init();
 
 
    int i = 0;
