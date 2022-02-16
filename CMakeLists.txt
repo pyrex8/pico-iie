@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+enable_language( C CXX ASM )
+
 project(pico-iie)
 
 include(pico_sdk_import.cmake)
