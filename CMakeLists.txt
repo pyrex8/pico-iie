@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
-enable_language( C CXX ASM )
-
-project(pico-iie)
-
 include(pico_sdk_import.cmake)
+
+project(pico-iie C CXX ASM)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
 pico_sdk_init()
 
-add_executable(
-    pico-iie
+add_executable(pico-iie
     main.c
     mcu/clock.c
     mcu/led.c
@@ -20,7 +20,7 @@ add_executable(
     common/ram.c
     common/rom.c
     common/video.c
-    m6502/c6502
+    m6502/c6502.c
 )
 
 pico_generate_pio_header(pico-iie ${CMAKE_CURRENT_LIST_DIR}/parallel.pio)
@@ -28,11 +28,17 @@ pico_generate_pio_header(pico-iie ${CMAKE_CURRENT_LIST_DIR}/parallel.pio)
 target_link_libraries(
     pico-iie
     pico_stdlib
+    pico_multicore
     hardware_vreg
     hardware_pio
     hardware_dma
-    hardware_pwm
-    pico_multicore)
+    hardware_pwm)
+
+    add_compile_options(-Wall
+            -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
+            -Wno-unused-function # we have some for the docs that aren't called
+            -Wno-maybe-uninitialized
+            )
 
 pico_add_extra_outputs(pico-iie)
 
