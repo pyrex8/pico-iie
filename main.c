@@ -83,6 +83,11 @@
 
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
+#define VIDEO_BYTES_PER_LINE 40
+
+#define VIDEO_SEGMENT_OFFSET 0x28
+#define SCREEN_LINE_OFFSET 0x80
+
 const uint VSYNC_PIN = 17;
 const uint HSYNC_PIN = 19;
 const uint PCLK_PIN = 5;
@@ -122,6 +127,8 @@ typedef enum
 const uint16_t hcolor[] = {VGA_BLACK, VGA_GREEN, VGA_PURPLE, VGA_WHITE, VGA_BLACK, VGA_ORANGE, VGA_BLUE, VGA_WHITE};
 
 static C6502_interface interface_c;
+static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
+static uint16_t video_data_address = 0x2000;
 static uint8_t video_mode = VIDEO_TEXT_MODE;
 static uint8_t video_page = VIDEO_PAGE_1;
 
@@ -140,6 +147,7 @@ int pclk_slice;
 uint pclk_channel;
 
 uint16_t scan_line;
+int16_t visible_line;
 uint16_t h_pixel;
 
 uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
@@ -148,6 +156,33 @@ uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 
 uint8_t uart_char = 0;
+
+static inline void scan_line_ram_read(void)
+{
+    video_buffer_clear();
+
+    if (video_mode == VIDEO_TEXT_MODE) // || game_line_is_text(scan_line))
+    {
+        video_data_address = 0x400 +
+                            (0x400 * video_page) +
+                            (((scan_line>>3) & 0x07) * SCREEN_LINE_OFFSET) +
+                            ((scan_line>>6) * VIDEO_SEGMENT_OFFSET);
+
+        ram_data_get(VIDEO_BYTES_PER_LINE, video_data_address, video_line_data);
+        video_text_line_update(scan_line, video_line_data);
+    }
+    else
+    {
+        video_data_address = 0x2000 +
+                             (0x2000 * video_page) +
+                             (scan_line & 7) * 0x400 +
+                             ((scan_line>>3) & 7) * 0x80 +
+                             (scan_line>>6) * 0x28;
+        ram_data_get(VIDEO_BYTES_PER_LINE, video_data_address, video_line_data);
+
+        video_hires_line_update(scan_line, video_line_data);
+    }
+}
 
 void main_init(void)
 {
@@ -213,31 +248,30 @@ void main_run(uint8_t clk_cycles)
     }
 }
 
-void __not_in_flash_func(vga_scan_line)(void)
+void vga_scan_line(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
+    scan_line_ram_read();
+    video_buffer_get(scan_line_buffer);
     multicore_fifo_push_blocking(0);
     pwm_clear_irq(hsync_slice);
 
-    scan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2;
+    visible_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2 - VIDEO_SCAN_LINE_OFFSET;
 
-    if ((scan_line > VIDEO_SCAN_LINE_OFFSET) &&
-        (scan_line < VIDEO_SCAN_LINE_OFFSET + VIDEO_RESOLUTION_Y))
+    if (visible_line > 0)
     {
-        memcpy(scan_line_buffer, scan_line_image, VIDEO_SCAN_BUFFER_LEN * 2);
+        scan_line = visible_line;
     }
     else
     {
-        if ((scan_line > VIDEO_SCAN_LINE_OFFSET - VIDEO_BORDER_Y) &&
-            (scan_line < VIDEO_SCAN_LINE_OFFSET + VIDEO_RESOLUTION_Y + VIDEO_BORDER_Y))
-        {
-            memcpy(scan_line_buffer, scan_line_border, VIDEO_SCAN_BUFFER_LEN * 2);
-        }
-        else
-        {
-            memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
-        }
+        scan_line = VIDEO_SCAN_LINES + visible_line;
+    }
+
+
+    if (scan_line > VIDEO_RESOLUTION_Y)
+    {
+        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
     test0_pin_low();
 
