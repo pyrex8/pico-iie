@@ -124,8 +124,6 @@ typedef enum
     VIDEO_PAGE_2
 } VideoPageStatus;
 
-const uint16_t hcolor[] = {VGA_BLACK, VGA_GREEN, VGA_PURPLE, VGA_WHITE, VGA_BLACK, VGA_ORANGE, VGA_BLUE, VGA_WHITE};
-
 static C6502_interface interface_c;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
@@ -303,20 +301,6 @@ int main(void)
    multicore_launch_core1(core1_main);
 
    main_init();
-
-
-   int i = 0;
-   for (i = 0; i < VIDEO_SCAN_BUFFER_LEN; i++)
-   {
-       if ((i > VIDEO_SCAN_BUFFER_OFFSET) && (i < VIDEO_SCAN_BUFFER_OFFSET + VIDEO_RESOLUTION_X))
-       {
-            scan_line_image[i] = hcolor[(i>>2) & 0x07];
-       }
-       else
-       {
-            scan_line_image[i] = VGA_BLACK;
-       }
-   }
 
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);

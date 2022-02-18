@@ -22,12 +22,12 @@
 #define H_BUFFER_OFFSET 4
 #define H_BUFFER_VISIBLE 35
 
-enum VGA_COLOR_INDEX
-{
-  VGA_RED = 0,
-  VGA_GREEN,
-  VGA_BLUE,
-};
+#define VGA_BLACK  0x0000
+#define VGA_GREEN  0x0608
+#define VGA_PURPLE 0xF9D6
+#define VGA_ORANGE 0x12DD
+#define VGA_BLUE   0xE502
+#define VGA_WHITE  0xFFDF
 
 enum HCOLOR
 {
@@ -44,53 +44,22 @@ enum HCOLOR
     HCOLOR_LENGTH,
 };
 
-static uint8_t vga_hcolor[VGA_COLORS][HCOLOR_LENGTH]   =
+const uint16_t hcolor[] =
 {
-    {0,1,0,0,1,0,1,1,0,1}, //red
-    {0,0,1,1,0,1,0,0,1,1}, //green
-    {0,1,0,0,1,1,0,0,1,1}, //blue
+    VGA_BLACK,
+    VGA_PURPLE,
+    VGA_GREEN,
+    VGA_GREEN,
+    VGA_PURPLE,
+    VGA_BLUE,
+    VGA_ORANGE,
+    VGA_ORANGE,
+    VGA_BLUE,
+    VGA_WHITE,
 };
 
-static uint8_t video_buffer[VIDEO_BUFFER_SIZE] = {0};
-static uint8_t vga_buffer[VGA_COLORS][VGA_LINE_BYTES];
 
-
-static inline void pixel_byte(uint16_t index, uint8_t *red, uint8_t *green, uint8_t *blue)
-{
-  uint16_t offset = index * 8;
-  *red = 0;
-  *green = 0;
-  *blue = 0;
-
-  for(int i = 0; i < 8; i++)
-  {
-    *red |= (vga_hcolor[VGA_RED][video_buffer[offset + i]]) << (7 - i);
-    *green |= (vga_hcolor[VGA_GREEN][video_buffer[offset + i]]) << (7 - i);
-    *blue |= (vga_hcolor[VGA_BLUE][video_buffer[offset + i]]) << (7 - i);
-  }
-}
-
-void video_scan_line_pixel_conversion(void)
-{
-    for(int i = 0; i < H_BUFFER_VISIBLE; i++)
-    {
-        pixel_byte(
-            i,
-            &vga_buffer[VGA_RED][i + H_BUFFER_OFFSET],
-            &vga_buffer[VGA_GREEN][i + H_BUFFER_OFFSET],
-            &vga_buffer[VGA_BLUE][i + H_BUFFER_OFFSET]);
-    }
-}
-
-void video_scan_line_zero(void)
-{
-    memset(vga_buffer, 0, SCAN_LINE_BYTES);
-}
-
-void video_scan_line_buffer_transfer(uint8_t *buffer)
-{
-    memcpy(buffer, vga_buffer, SCAN_LINE_BYTES);
-}
+static uint16_t video_buffer[VIDEO_BUFFER_SIZE] = {0};
 
 void video_hires_line_update(uint16_t video_line_number, uint8_t *video_line_data)
 {
@@ -142,7 +111,7 @@ void video_hires_line_update(uint16_t video_line_number, uint8_t *video_line_dat
                         color = color_offset + address_odd +  1 - (i & 1) + 1;
                     }
                 }
-                video_buffer[j*7 + i] |= color;
+                video_buffer[j*7 + i] |= hcolor[color];
             }
         }
     }
@@ -185,7 +154,7 @@ void video_text_line_update(uint16_t video_line_number, uint8_t *video_line_data
                 {
                     color = BLACK;
                 }
-                video_buffer[j*7 + i] |= color;
+                video_buffer[j*7 + i] |= hcolor[color];
             }
         }
     }
@@ -193,10 +162,10 @@ void video_text_line_update(uint16_t video_line_number, uint8_t *video_line_data
 
 void video_buffer_clear(void)
 {
-    memset(video_buffer, 0, VIDEO_BUFFER_SIZE);
+    memset(video_buffer, 0, VIDEO_BUFFER_SIZE * 2);
 }
 
-void video_buffer_get(uint8_t *buffer)
+void video_buffer_get(uint16_t *buffer)
 {
-    memcpy(buffer, video_buffer, VIDEO_BUFFER_SIZE);
+    memcpy(buffer, video_buffer, VIDEO_BUFFER_SIZE * 2);
 }
