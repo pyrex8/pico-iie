@@ -22,6 +22,7 @@
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
+#include "mcu/speaker.h"
 
 #define BACKGROUND_LOOP_DELAY_MS 16
 
@@ -153,6 +154,7 @@ void main_init(void)
     rom_init();
     ram_init();
     c6502_init();
+    speaker_init();
 }
 
 void main_run(uint8_t clk_cycles)
@@ -167,7 +169,7 @@ void main_run(uint8_t clk_cycles)
         keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
         joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
         // Disable speaker if using game audio
-//        speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
+       speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
         // game_update(interface_c.rw, interface_c.address, &interface_c.data);
 
         if (interface_c.address == 0xC019)
@@ -248,7 +250,7 @@ int core1_main(void)
     {
         multicore_fifo_pop_blocking();
         test1_pin_high();
-        main_run(1);
+        main_run(22);
         test1_pin_low();
     }
 }
