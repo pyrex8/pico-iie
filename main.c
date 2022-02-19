@@ -257,7 +257,7 @@ void vga_scan_line(void)
 
     visible_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2 - VIDEO_SCAN_LINE_OFFSET;
 
-    if (visible_line > 0)
+    if (visible_line >= 0)
     {
         scan_line = visible_line;
     }
