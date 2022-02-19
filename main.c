@@ -372,7 +372,6 @@ void vga_scan_line(void)
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
     video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
-    test0_pin_low();
 
     scan_line_ram_read();
     multicore_fifo_push_blocking(0);
@@ -395,9 +394,10 @@ void vga_scan_line(void)
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
 
+    main_run(11);
+
     uart_data();
-
-
+    test0_pin_low();
 }
 
 int core1_main(void)
@@ -406,8 +406,9 @@ int core1_main(void)
     while (1)
     {
         multicore_fifo_pop_blocking();
+        multicore_fifo_drain();
         test1_pin_high();
-        main_run(22);
+//        main_run(11);
         test1_pin_low();
     }
 }
