@@ -371,8 +371,10 @@ void vga_scan_line(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
-    scan_line_ram_read();
     video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
+    test0_pin_low();
+
+    scan_line_ram_read();
     multicore_fifo_push_blocking(0);
     pwm_clear_irq(hsync_slice);
 
@@ -395,7 +397,7 @@ void vga_scan_line(void)
 
     uart_data();
 
-    test0_pin_low();
+
 }
 
 int core1_main(void)
