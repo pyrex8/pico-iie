@@ -372,9 +372,9 @@ void vga_scan_line(void)
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
     video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
-
     scan_line_ram_read();
     multicore_fifo_push_blocking(0);
+
     pwm_clear_irq(hsync_slice);
 
     visible_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2 - VIDEO_SCAN_LINE_OFFSET;
@@ -388,13 +388,65 @@ void vga_scan_line(void)
         scan_line = VIDEO_SCAN_LINES + visible_line;
     }
 
-
-    if (scan_line > VIDEO_RESOLUTION_Y)
+    if (scan_line == VIDEO_RESOLUTION_Y)
     {
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
 
     main_run(11);
+
+    c6502_update(&interface_c);
+    ram_update(interface_c.rw, interface_c.address, &interface_c.data);
+    rom_update(interface_c.rw, interface_c.address, &interface_c.data);
+//        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
+    keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
+
+    test1_pin_high();
+    joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
+    test1_pin_low();
+
+    // Disable speaker if using game audio
+   speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
+    // game_update(interface_c.rw, interface_c.address, &interface_c.data);
+
+    if (interface_c.address == 0xC019)
+    {
+        if (scan_line < VIDEO_SCAN_LINES_VISIBLE)
+        {
+            interface_c.data = 0x80;
+        }
+        else
+        {
+            interface_c.data = 0;
+        }
+    }
+
+    if (interface_c.address == 0xC054)
+    {
+        video_page = VIDEO_PAGE_1;
+    }
+    if (interface_c.address == 0xC055)
+    {
+        video_page = VIDEO_PAGE_2;
+    }
+
+    if (interface_c.address == 0xC050)
+    {
+        video_mode = VIDEO_GRAPHICS_MODE;
+    }
+
+    if (interface_c.address == 0xC051)
+    {
+        video_mode = VIDEO_TEXT_MODE;
+    }
+
+    //$C100 - $C7FF (49408 - 51199): Peripheral Card Memory
+    if (interface_c.address == 0xC100)
+    {
+    }
+    if (interface_c.address == 0xC101)
+    {
+    }
 
     uart_data();
     test0_pin_low();
@@ -407,9 +459,9 @@ int core1_main(void)
     {
         multicore_fifo_pop_blocking();
         multicore_fifo_drain();
-        test1_pin_high();
+//        test1_pin_high();
 //        main_run(11);
-        test1_pin_low();
+//        test1_pin_low();
     }
 }
 
