@@ -83,6 +83,8 @@
 
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
+#define VIDEO_SCAN_LINE_CLK_CYCLES 11
+
 #define VIDEO_BYTES_PER_LINE 40
 
 #define VIDEO_SEGMENT_OFFSET 0x28
@@ -215,7 +217,6 @@ void uart_data(void)
                 joystick_y = serial_byte & 0xFE;
                 button_1 = serial_byte & 0x01;
                 joystick_state_set(button_0, button_1, joystick_x, joystick_y);
-//                game_joystick_set(button_0, joystick_x, joystick_y);
                 user_state = SERIAL_USER_KEYBOARD;
                 serial_loader = SERIAL_READY;
             }
@@ -280,7 +281,7 @@ static inline void scan_line_ram_read(void)
 {
     video_buffer_clear();
 
-    if (video_mode == VIDEO_TEXT_MODE) // || game_line_is_text(scan_line))
+    if (video_mode == VIDEO_TEXT_MODE)
     {
         video_data_address = 0x400 +
                             (0x400 * video_page) +
@@ -319,12 +320,9 @@ void main_run(uint8_t clk_cycles)
         ram_update(interface_c.rw, interface_c.address, &interface_c.data);
         rom_update(interface_c.rw, interface_c.address, &interface_c.data);
 //        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
-
         keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
         joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
-        // Disable speaker if using game audio
-       speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
-        // game_update(interface_c.rw, interface_c.address, &interface_c.data);
+        speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
 
         if (interface_c.address == 0xC019)
         {
@@ -356,14 +354,6 @@ void main_run(uint8_t clk_cycles)
         {
             video_mode = VIDEO_TEXT_MODE;
         }
-
-        //$C100 - $C7FF (49408 - 51199): Peripheral Card Memory
-        if (interface_c.address == 0xC100)
-        {
-        }
-        if (interface_c.address == 0xC101)
-        {
-        }
     }
 }
 
@@ -393,62 +383,12 @@ void vga_scan_line(void)
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
 
-    main_run(11);
-
-    c6502_update(&interface_c);
-    ram_update(interface_c.rw, interface_c.address, &interface_c.data);
-    rom_update(interface_c.rw, interface_c.address, &interface_c.data);
-//        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
-    keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
-
-    test1_pin_high();
-    joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
-    test1_pin_low();
-
-    // Disable speaker if using game audio
-   speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
-    // game_update(interface_c.rw, interface_c.address, &interface_c.data);
-
-    if (interface_c.address == 0xC019)
-    {
-        if (scan_line < VIDEO_SCAN_LINES_VISIBLE)
-        {
-            interface_c.data = 0x80;
-        }
-        else
-        {
-            interface_c.data = 0;
-        }
-    }
-
-    if (interface_c.address == 0xC054)
-    {
-        video_page = VIDEO_PAGE_1;
-    }
-    if (interface_c.address == 0xC055)
-    {
-        video_page = VIDEO_PAGE_2;
-    }
-
-    if (interface_c.address == 0xC050)
-    {
-        video_mode = VIDEO_GRAPHICS_MODE;
-    }
-
-    if (interface_c.address == 0xC051)
-    {
-        video_mode = VIDEO_TEXT_MODE;
-    }
-
-    //$C100 - $C7FF (49408 - 51199): Peripheral Card Memory
-    if (interface_c.address == 0xC100)
-    {
-    }
-    if (interface_c.address == 0xC101)
-    {
-    }
+    main_run(VIDEO_SCAN_LINE_CLK_CYCLES);
 
     uart_data();
+    test1_pin_high();
+    joystick_scanline_update(VIDEO_SCAN_LINE_CLK_CYCLES);
+    test1_pin_low();
     test0_pin_low();
 }
 
