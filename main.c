@@ -8,7 +8,6 @@
 #include "parallel.pio.h"
 #include "pico/binary_info.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
-#include "pico/multicore.h"
 
 #include "common/rom.h"
 #include "common/ram.h"
@@ -76,7 +75,7 @@
 #define VIDEO_BORDER_COLOR ((0x1F<<6) & 0xFFFF)
 
 #define VIDEO_SCAN_BUFFER_OFFSET ((VGA_H_BACK_PORCH + (VGA_H_VISIBLE_AREA - VIDEO_RESOLUTION_X * 2) / 2) / 2) //44
-#define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2) / 2)   //40.5 rounded down
+#define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2))   //40.5 rounded down
 
 // one last value of zero otherwise last pixel repeats to the end of the scan line
 #define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
@@ -162,7 +161,8 @@ int pclk_slice;
 uint pclk_channel;
 
 uint16_t scan_line;
-int16_t visible_line;
+int16_t overscan_line;
+uint8_t overscan_line_odd;
 uint16_t h_pixel;
 
 uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
@@ -361,24 +361,31 @@ void vga_scan_line(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
-    video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
-    scan_line_ram_read();
-    multicore_fifo_push_blocking(0);
 
-    pwm_clear_irq(hsync_slice);
+    overscan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
+    overscan_line_odd = overscan_line & 0x01;
 
-    visible_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER / 2 - VIDEO_SCAN_LINE_OFFSET;
-
-    if (visible_line >= 0)
+    if (overscan_line >= 0)
     {
-        scan_line = visible_line;
+        scan_line = overscan_line / 2;
     }
     else
     {
-        scan_line = VIDEO_SCAN_LINES + visible_line;
+        scan_line = VIDEO_SCAN_LINES + overscan_line / 2;
     }
 
-    if (scan_line == VIDEO_RESOLUTION_Y)
+    if (overscan_line_odd)
+    {
+        video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
+    }
+    else
+    {
+        scan_line_ram_read();
+    }
+
+    pwm_clear_irq(hsync_slice);
+
+    if (scan_line >= VIDEO_RESOLUTION_Y)
     {
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
@@ -392,19 +399,6 @@ void vga_scan_line(void)
     test0_pin_low();
 }
 
-int core1_main(void)
-{
-
-    while (1)
-    {
-        multicore_fifo_pop_blocking();
-        multicore_fifo_drain();
-//        test1_pin_high();
-//        main_run(11);
-//        test1_pin_low();
-    }
-}
-
 int main(void)
 {
    clock_init();
@@ -416,8 +410,6 @@ int main(void)
    uart_init(UART_ID, UART_BAUD_RATE);
    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-
-   multicore_launch_core1(core1_main);
 
    main_init();
 
