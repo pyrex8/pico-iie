@@ -82,7 +82,9 @@
 
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
-#define VIDEO_SCAN_LINE_CLK_CYCLES 11
+// When running full speed total should add up to 65 cycles
+#define VIDEO_SCAN_LINE_CLK_CYCLES_ODD 25
+#define VIDEO_SCAN_LINE_CLK_CYCLES_EVEN 15
 
 #define VIDEO_BYTES_PER_LINE 40
 
@@ -145,6 +147,7 @@ static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
 static uint8_t video_mode = VIDEO_TEXT_MODE;
 static uint8_t video_page = VIDEO_PAGE_1;
+static uint8_t video_scan_line_cycles;
 
 PIO pio;
 uint offset;
@@ -165,7 +168,14 @@ int16_t overscan_line;
 uint8_t overscan_line_odd;
 uint16_t h_pixel;
 
-uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
+#define DMA_RING_BITS 11
+#define DMA_BYTES (1 << DMA_RING_BITS)
+#define DMA_WORDS 1024
+
+// Aligned for the DMA ring address wrap.
+uint16_t scan_line_buffer[DMA_WORDS] __attribute__((aligned(2048)));
+
+//uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
@@ -181,7 +191,6 @@ static uint8_t button_0 = 0;
 static uint8_t button_1 = 0;
 
 static bool reset = false;
-
 
 void uart_data(void)
 {
@@ -377,10 +386,12 @@ void vga_scan_line(void)
     if (overscan_line_odd)
     {
         video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
+        video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_ODD;
     }
     else
     {
         scan_line_ram_read();
+        video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_EVEN;
     }
 
     pwm_clear_irq(hsync_slice);
@@ -390,12 +401,12 @@ void vga_scan_line(void)
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
 
-    main_run(VIDEO_SCAN_LINE_CLK_CYCLES);
+    main_run(video_scan_line_cycles);
+
 
     uart_data();
-    test1_pin_high();
-    joystick_scanline_update(VIDEO_SCAN_LINE_CLK_CYCLES);
-    test1_pin_low();
+    joystick_scanline_update(video_scan_line_cycles);
+
     test0_pin_low();
 }
 
@@ -452,6 +463,7 @@ int main(void)
     channel_config_set_transfer_data_size(&pio_dma_chan_config, DMA_SIZE_16);
     channel_config_set_read_increment(&pio_dma_chan_config, true);
     channel_config_set_write_increment(&pio_dma_chan_config, false);
+    channel_config_set_ring(&pio_dma_chan_config, false, DMA_RING_BITS);
     channel_config_set_dreq(&pio_dma_chan_config, DREQ_PWM_WRAP0 + pclk_slice);
 
     dma_channel_configure(
@@ -459,7 +471,7 @@ int main(void)
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        VIDEO_SCAN_BUFFER_LEN,
+        DMA_WORDS,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
