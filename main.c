@@ -79,6 +79,7 @@
 
 // one last value of zero otherwise last pixel repeats to the end of the scan line
 #define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
+#define VIDEO_SCAN_LINE_LEN (VGA_H_WHOLE_LINE / 2)
 
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
@@ -169,7 +170,7 @@ int16_t overscan_line;
 uint8_t overscan_line_odd;
 uint16_t h_pixel;
 
-uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN * 2] = {0};
+uint16_t scan_line_buffer[VIDEO_SCAN_LINE_LEN * 2] = {0};
 uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
@@ -385,7 +386,8 @@ void vga_scan_line(void)
     }
     else
     {
-        dma_hw->ch[pio_dma_chan2].al3_read_addr_trig = &scan_line_buffer[VIDEO_SCAN_BUFFER_LEN];
+        dma_hw->ch[pio_dma_chan2].al3_read_addr_trig = &scan_line_buffer[VIDEO_SCAN_LINE_LEN];
+        video_buffer_get(&scan_line_buffer[VIDEO_SCAN_LINE_LEN + VIDEO_SCAN_BUFFER_OFFSET]);
         scan_line_ram_read();
         video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_EVEN;
     }
@@ -395,6 +397,7 @@ void vga_scan_line(void)
     if (scan_line >= VIDEO_RESOLUTION_Y)
     {
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
+        memcpy(&scan_line_buffer[VIDEO_SCAN_LINE_LEN], scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
     }
 
     main_run(video_scan_line_cycles);
@@ -467,7 +470,7 @@ int main(void)
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        VIDEO_SCAN_BUFFER_LEN,
+        VIDEO_SCAN_LINE_LEN,
         false);
 
     pio_dma_chan2 = dma_claim_unused_channel(true);
@@ -483,8 +486,8 @@ int main(void)
         pio_dma_chan2,
         &pio_dma_chan_config2,
         &pio->txf[sm],
-        &scan_line_buffer[VIDEO_SCAN_BUFFER_LEN],
-        VIDEO_SCAN_BUFFER_LEN,
+        &scan_line_buffer[VIDEO_SCAN_LINE_LEN],
+        VIDEO_SCAN_LINE_LEN,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
