@@ -172,8 +172,6 @@ uint16_t h_pixel;
 
 uint16_t scan_line_buffer[VIDEO_SCAN_LINE_LEN * 2] = {0};
 uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
-uint16_t scan_line_border[VIDEO_SCAN_BUFFER_LEN] = {0};
-uint16_t scan_line_image[VIDEO_SCAN_BUFFER_LEN] = {0};
 
 static SerialMode serial_loader = SERIAL_READY;
 static UserState user_state = SERIAL_USER_KEYBOARD;
