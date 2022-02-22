@@ -362,7 +362,7 @@ void main_run(uint8_t clk_cycles)
 
 void vga_scan_line(void)
 {
-    dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
+    // dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
     test0_pin_high();
 
     overscan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
@@ -379,13 +379,13 @@ void vga_scan_line(void)
 
     if (overscan_line_odd)
     {
-        // dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
+        dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
         video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
         video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_ODD;
     }
     else
     {
-        // dma_hw->ch[pio_dma_chan2].al3_read_addr_trig = &scan_line_buffer[VIDEO_SCAN_BUFFER_LEN];
+        dma_hw->ch[pio_dma_chan2].al3_read_addr_trig = &scan_line_buffer[VIDEO_SCAN_BUFFER_LEN];
         scan_line_ram_read();
         video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_EVEN;
     }
@@ -431,6 +431,9 @@ int main(void)
 
     pwm_clear_irq(hsync_slice);
     pwm_set_irq_enabled(hsync_slice, true);
+    irq_set_exclusive_handler(PWM_IRQ_WRAP, vga_scan_line);
+    irq_set_priority(PWM_IRQ_WRAP, 0);
+    irq_set_enabled(PWM_IRQ_WRAP, true);
 
     pwm_set_clkdiv_int_frac (hsync_slice, HSYNC__DIVIDER_INTEGER, HSYNC__DIVIDER_FRACT);
     pwm_set_wrap(hsync_slice, HSYNC_PWM_COUNT);
@@ -465,24 +468,24 @@ int main(void)
         &pio->txf[sm],
         scan_line_buffer,
         VIDEO_SCAN_BUFFER_LEN,
-        true);
+        false);
 
-//     pio_dma_chan2 = dma_claim_unused_channel(true);
-//     dma_channel_config pio_dma_chan_config2 = dma_channel_get_default_config(pio_dma_chan2);
-//
-//     channel_config_set_transfer_data_size(&pio_dma_chan_config2, DMA_SIZE_16);
-//     channel_config_set_read_increment(&pio_dma_chan_config2, true);
-//     channel_config_set_write_increment(&pio_dma_chan_config2, false);
-// //    channel_config_set_chain_to(&pio_dma_chan_config2, pio_dma_chan);
-//     channel_config_set_dreq(&pio_dma_chan_config2, DREQ_PWM_WRAP0 + pclk_slice);
-//
-//     dma_channel_configure(
-//         pio_dma_chan2,
-//         &pio_dma_chan_config2,
-//         &pio->txf[sm],
-//         &scan_line_buffer[VIDEO_SCAN_BUFFER_LEN],
-//         VIDEO_SCAN_BUFFER_LEN,
-//         false);
+    pio_dma_chan2 = dma_claim_unused_channel(true);
+    dma_channel_config pio_dma_chan_config2 = dma_channel_get_default_config(pio_dma_chan2);
+
+    channel_config_set_transfer_data_size(&pio_dma_chan_config2, DMA_SIZE_16);
+    channel_config_set_read_increment(&pio_dma_chan_config2, true);
+    channel_config_set_write_increment(&pio_dma_chan_config2, false);
+//    channel_config_set_chain_to(&pio_dma_chan_config2, pio_dma_chan);
+    channel_config_set_dreq(&pio_dma_chan_config2, DREQ_PWM_WRAP0 + pclk_slice);
+
+    dma_channel_configure(
+        pio_dma_chan2,
+        &pio_dma_chan_config2,
+        &pio->txf[sm],
+        &scan_line_buffer[VIDEO_SCAN_BUFFER_LEN],
+        VIDEO_SCAN_BUFFER_LEN,
+        true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 
