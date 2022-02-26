@@ -21,7 +21,14 @@
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
+#include "mcu/serial.h"
 #include "mcu/speaker.h"
+
+// time_critical.mutex_enter_blocking
+// .text          0x7dbc = 32188
+// data
+// __bss_start__  __bss_end__ 0xD20C = 53772
+// .flash_end      0xf170 = 61808
 
 #define BACKGROUND_LOOP_DELAY_MS 16
 
@@ -103,12 +110,6 @@ const uint R0_PIN = 0;
 #define VGA_ORANGE 0x12DD
 #define VGA_BLUE   0xE502
 #define VGA_WHITE  0xFFDF
-
-#define UART_ID uart1
-#define UART_BAUD_RATE 230400
-
-#define UART_TX_PIN 20
-#define UART_RX_PIN 21
 
 typedef enum
 {

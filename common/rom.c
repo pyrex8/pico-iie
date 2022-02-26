@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+// #include <stdio.h>
+// #include <string.h>
 #include <stdlib.h>
 
 #include "rom.h"

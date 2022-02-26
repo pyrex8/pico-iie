@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <stdio.h>
+// #include <stdio.h>
 #include <string.h>
 #include "video.h"
 #include "video_char_data.h"

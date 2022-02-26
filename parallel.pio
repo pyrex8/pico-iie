@@ -28,7 +28,7 @@ static inline void parallel_program_init(PIO pio, uint sm, uint offset, uint pin
     pio_gpio_init(pio, pin + 15);
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 16, true);
     sm_config_set_out_pins(&c, pin, 16);
-    sm_config_set_fifo_join(pio, PIO_FIFO_JOIN_TX);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
 }

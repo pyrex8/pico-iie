@@ -13,6 +13,7 @@ add_executable(pico-iie
     mcu/clock.c
     mcu/led.c
     mcu/test.c
+    mcu/serial.c
     mcu/speaker.c
     common/audio.c
     common/disk.c
