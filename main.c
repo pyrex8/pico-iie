@@ -7,6 +7,7 @@
 #include "hardware/irq.h"
 #include "parallel.pio.h"
 #include "pico/binary_info.h"
+#include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 
 #include "common/rom.h"
@@ -414,7 +415,7 @@ void vga_scan_line(void)
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
     }
 
-    display_value(&scan_line_buffer[VGA_DISPLAY_VALUE], (uint8_t)timer_hw->inte);
+    display_value(&scan_line_buffer[VGA_DISPLAY_VALUE], (uint8_t)(((mpu_hw_t *const)(PPB_BASE + M0PLUS_MPU_TYPE_OFFSET + M0PLUS_NVIC_ISER_OFFSET)))); // (uint8_t)mpu_hw->iser
 
     main_run(video_scan_line_cycles);
 
@@ -490,6 +491,7 @@ int main(void)
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 
+    // usb_hw->inte = 0;
     // Timer Alarm 3 is enabled, disable it
     timer_hw->inte = 0;
 
