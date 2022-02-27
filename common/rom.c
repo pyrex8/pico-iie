@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
-// #include <stdio.h>
-// #include <string.h>
 #include <stdlib.h>
 
 #include "rom.h"
@@ -23,10 +21,6 @@ void rom_init(void)
     {
         rom_in_ram[i] = apple2e_enhanced_rom[i];
     }
-}
-
-void rom_deinit(void)
-{
 }
 
 void rom_update(uint8_t read, uint16_t address, uint8_t *byte)

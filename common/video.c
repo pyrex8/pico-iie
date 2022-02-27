@@ -58,8 +58,17 @@ const uint16_t hcolor[] =
     VGA_WHITE,
 };
 
-
+static uint8_t video_char_set[CHARACTER_SET_ROM_SIZE];
 static uint16_t video_buffer[VIDEO_BUFFER_SIZE] = {0};
+
+void video_init(void)
+{
+    for (int i = 0; i < CHARACTER_SET_ROM_SIZE; i++)
+    {
+        video_char_set[i] = char_rom[i];
+    }
+}
+
 
 void video_hires_line_update(uint16_t video_line_number, uint8_t *video_line_data)
 {
@@ -144,7 +153,7 @@ void video_text_line_update(uint16_t video_line_number, uint8_t *video_line_data
 
             rom_char = text_char * TEXT_BYTES;
             rom_char_offset = video_line_number & TEXT_BYTES_MASK;
-            data = apple2e_char_rom[rom_char + rom_char_offset];
+            data = video_char_set[rom_char + rom_char_offset];
 
             for(int i = 0; i < 7; i++)
             {

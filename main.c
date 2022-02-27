@@ -317,6 +317,7 @@ void main_init(void)
 {
     rom_init();
     ram_init();
+    video_init();
     c6502_init();
     speaker_init();
 }
