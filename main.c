@@ -415,7 +415,9 @@ void vga_scan_line(void)
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
     }
 
-    display_value(&scan_line_buffer[VGA_DISPLAY_VALUE], (uint8_t)(((mpu_hw_t *const)(PPB_BASE + M0PLUS_MPU_TYPE_OFFSET + M0PLUS_NVIC_ISER_OFFSET)))); // (uint8_t)mpu_hw->iser
+    uint32_t reg = *(volatile uint32_t *)(TIMER_BASE + TIMER_INTE_OFFSET);
+    uint8_t reg8 = reg >> 0;
+    display_value(&scan_line_buffer[VGA_DISPLAY_VALUE], reg8);
 
     main_run(video_scan_line_cycles);
 
