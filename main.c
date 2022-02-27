@@ -111,6 +111,8 @@ const uint R0_PIN = 0;
 #define VGA_BLUE   0xE502
 #define VGA_WHITE  0xFFDF
 
+#define VGA_DISPLAY_VALUE 300
+
 typedef enum
 {
     MEMORY_WRITE = 0,
@@ -155,7 +157,6 @@ PIO pio;
 uint offset;
 uint sm;
 int pio_dma_chan;
-int pio_dma_chan2;
 
 uint hsync_slice;
 uint hsync_channel;
@@ -171,7 +172,7 @@ int16_t overscan_line;
 uint8_t overscan_line_odd;
 uint16_t h_pixel;
 
-uint16_t scan_line_buffer[VIDEO_SCAN_LINE_LEN * 2] = {0};
+uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
 
 static SerialMode serial_loader = SERIAL_READY;
@@ -186,6 +187,8 @@ static uint8_t button_1 = 0;
 
 static bool reset = false;
 
+static uint8_t ser_byte = 0x81;
+
 void uart_data(void)
 {
     uint8_t serial_byte = 0;
@@ -193,6 +196,8 @@ void uart_data(void)
     if(uart_is_readable(UART_ID))
     {
         serial_byte = uart_getc(UART_ID);
+//        serial_byte = uart_get_hw(UART_ID)->dr & 0xFF;
+        ser_byte = serial_byte;
 
         if(serial_loader == SERIAL_USER)
         {
@@ -360,9 +365,23 @@ void main_run(uint8_t clk_cycles)
     }
 }
 
+void display_value(uint16_t *video_buffer, uint8_t value)
+{
+    video_buffer[0] = 0x0FFF;
+    video_buffer[2] = value & 1<<7 ? 0xFFFF : 0;
+    video_buffer[4] = value & 1<<6 ? 0xFFFF : 0;
+    video_buffer[8] = value & 1<<5 ? 0xFFFF : 0;
+    video_buffer[10] = value & 1<<4 ? 0xFFFF : 0;
+    video_buffer[12] = value & 1<<3 ? 0xFFFF : 0;
+    video_buffer[14] = value & 1<<2 ? 0xFFFF : 0;
+    video_buffer[16] = value & 1<<1 ? 0xFFFF : 0;
+    video_buffer[18] = value & 1<<0 ? 0xFFFF : 0;
+    video_buffer[20] = 0x0FFF;
+}
+
 void vga_scan_line(void)
 {
-    // dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
+    dma_hw->ch[pio_dma_chan].al3_read_addr_trig = (io_rw_32)scan_line_buffer;
     test0_pin_high();
 
     overscan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
@@ -379,14 +398,11 @@ void vga_scan_line(void)
 
     if (overscan_line_odd)
     {
-        dma_hw->ch[pio_dma_chan].al3_read_addr_trig = scan_line_buffer;
-        video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
+       video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
         video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_ODD;
     }
     else
     {
-        dma_hw->ch[pio_dma_chan2].al3_read_addr_trig = &scan_line_buffer[VIDEO_SCAN_LINE_LEN];
-        video_buffer_get(&scan_line_buffer[VIDEO_SCAN_LINE_LEN + VIDEO_SCAN_BUFFER_OFFSET]);
         scan_line_ram_read();
         video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_EVEN;
     }
@@ -395,9 +411,10 @@ void vga_scan_line(void)
 
     if (scan_line >= VIDEO_RESOLUTION_Y)
     {
-        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
-        memcpy(&scan_line_buffer[VIDEO_SCAN_LINE_LEN], scan_line_blank, VIDEO_SCAN_BUFFER_LEN * 2);
+        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
     }
+
+    display_value(&scan_line_buffer[VGA_DISPLAY_VALUE], (uint8_t)timer_hw->inte);
 
     main_run(video_scan_line_cycles);
 
@@ -410,17 +427,17 @@ void vga_scan_line(void)
 
 int main(void)
 {
-   clock_init();
-   led_blink_init(BACKGROUND_LOOP_DELAY_MS);
-   led_red_init();
-   test0_pin_init();
-   test1_pin_init();
+    clock_init();
+    led_blink_init(BACKGROUND_LOOP_DELAY_MS);
+    led_red_init();
+    test0_pin_init();
+    test1_pin_init();
 
-   uart_init(UART_ID, UART_BAUD_RATE);
-   gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-   gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    uart_init(UART_ID, UART_BAUD_RATE);
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
-   main_init();
+    main_init();
 
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);
@@ -461,7 +478,6 @@ int main(void)
     channel_config_set_transfer_data_size(&pio_dma_chan_config, DMA_SIZE_16);
     channel_config_set_read_increment(&pio_dma_chan_config, true);
     channel_config_set_write_increment(&pio_dma_chan_config, false);
-//    channel_config_set_chain_to(&pio_dma_chan_config, pio_dma_chan2);
     channel_config_set_dreq(&pio_dma_chan_config, DREQ_PWM_WRAP0 + pclk_slice);
 
     dma_channel_configure(
@@ -469,43 +485,17 @@ int main(void)
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        VIDEO_SCAN_LINE_LEN,
-        false);
-
-    pio_dma_chan2 = dma_claim_unused_channel(true);
-    dma_channel_config pio_dma_chan_config2 = dma_channel_get_default_config(pio_dma_chan2);
-
-    channel_config_set_transfer_data_size(&pio_dma_chan_config2, DMA_SIZE_16);
-    channel_config_set_read_increment(&pio_dma_chan_config2, true);
-    channel_config_set_write_increment(&pio_dma_chan_config2, false);
-//    channel_config_set_chain_to(&pio_dma_chan_config2, pio_dma_chan);
-    channel_config_set_dreq(&pio_dma_chan_config2, DREQ_PWM_WRAP0 + pclk_slice);
-
-    dma_channel_configure(
-        pio_dma_chan2,
-        &pio_dma_chan_config2,
-        &pio->txf[sm],
-        &scan_line_buffer[VIDEO_SCAN_LINE_LEN],
-        VIDEO_SCAN_LINE_LEN,
+        VIDEO_SCAN_BUFFER_LEN,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 
+    // Timer Alarm 3 is enabled, disable it
+    timer_hw->inte = 0;
+
     while (1)
     {
-        // led_blink_update(LED_BLINK_NORMAL);
+        led_blink_update(LED_BLINK_NORMAL);
         // sleep_ms(BACKGROUND_LOOP_DELAY_MS);
-        // if (uart_is_readable(UART_ID))
-        // {
-        //     uart_char = uart_getc(UART_ID);
-        //     if (uart_char == 'a')
-        //     {
-        //         led_red_high();
-        //     }
-        //     if (uart_char == 's')
-        //     {
-        //         led_red_low();
-        //     }
-        // }
     }
 }
