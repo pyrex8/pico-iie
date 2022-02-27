@@ -286,7 +286,7 @@ void uart_data(void)
 }
 
 
-static inline void scan_line_ram_read(void)
+static void scan_line_ram_read(void)
 {
     video_buffer_clear();
 
@@ -366,21 +366,7 @@ void main_run(uint8_t clk_cycles)
     }
 }
 
-void display_value(uint16_t *video_buffer, uint8_t value)
-{
-    video_buffer[0] = 0x0FFF;
-    video_buffer[2] = value & 1<<7 ? 0xFFFF : 0;
-    video_buffer[4] = value & 1<<6 ? 0xFFFF : 0;
-    video_buffer[8] = value & 1<<5 ? 0xFFFF : 0;
-    video_buffer[10] = value & 1<<4 ? 0xFFFF : 0;
-    video_buffer[12] = value & 1<<3 ? 0xFFFF : 0;
-    video_buffer[14] = value & 1<<2 ? 0xFFFF : 0;
-    video_buffer[16] = value & 1<<1 ? 0xFFFF : 0;
-    video_buffer[18] = value & 1<<0 ? 0xFFFF : 0;
-    video_buffer[20] = 0x0FFF;
-}
-
-void vga_scan_line(void)
+void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_line(void)
 {
     dma_hw->ch[pio_dma_chan].al3_read_addr_trig = (io_rw_32)scan_line_buffer;
     test0_pin_high();
@@ -399,7 +385,7 @@ void vga_scan_line(void)
 
     if (overscan_line_odd)
     {
-       video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
+        video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
         video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_ODD;
     }
     else
@@ -415,12 +401,7 @@ void vga_scan_line(void)
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
     }
 
-    uint32_t reg = *(volatile uint32_t *)(TIMER_BASE + TIMER_INTE_OFFSET);
-    uint8_t reg8 = reg >> 0;
-    display_value(&scan_line_buffer[VGA_DISPLAY_VALUE], reg8);
-
     main_run(video_scan_line_cycles);
-
 
     uart_data();
     joystick_scanline_update(video_scan_line_cycles);
@@ -493,13 +474,9 @@ int main(void)
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 
-    // usb_hw->inte = 0;
-    // Timer Alarm 3 is enabled, disable it
-    timer_hw->inte = 0;
-
     while (1)
     {
-        led_blink_update(LED_BLINK_NORMAL);
+        // led_blink_update(LED_BLINK_NORMAL);
         // sleep_ms(BACKGROUND_LOOP_DELAY_MS);
     }
 }
