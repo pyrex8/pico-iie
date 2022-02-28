@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "rom.h"
 #include "rom_data.h"
@@ -17,10 +18,7 @@ static uint8_t rom_in_ram[ROM_SIZE];
 
 void rom_init(void)
 {
-    for (int i = 0; i < ROM_SIZE; i++)
-    {
-        rom_in_ram[i] = apple2e_enhanced_rom[i];
-    }
+    memcpy(rom_in_ram, apple2e_enhanced_rom, ROM_SIZE);
 }
 
 void rom_update(uint8_t read, uint16_t address, uint8_t *byte)

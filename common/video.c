@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
-// #include <stdio.h>
 #include <string.h>
 #include "video.h"
 #include "video_char_data.h"
@@ -63,10 +62,7 @@ static uint16_t video_buffer[VIDEO_BUFFER_SIZE] = {0};
 
 void video_init(void)
 {
-    for (int i = 0; i < CHARACTER_SET_ROM_SIZE; i++)
-    {
-        video_char_set[i] = char_rom[i];
-    }
+    memcpy(video_char_set, char_rom, CHARACTER_SET_ROM_SIZE);
 }
 
 

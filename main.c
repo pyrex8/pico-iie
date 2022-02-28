@@ -28,7 +28,7 @@
 // time_critical.mutex_enter_blocking
 // .text          0x7dbc = 32188
 // data
-// __bss_start__  __bss_end__ 0xD20C = 53772
+// __bss_start__  __bss_end__ 0x1216c = 74092
 // .flash_end      0xf170 = 61808
 
 #define BACKGROUND_LOOP_DELAY_MS 16
