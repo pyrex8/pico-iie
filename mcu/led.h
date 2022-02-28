@@ -6,6 +6,7 @@
 // Configuration
 #define LED_PIN_NUMBER 25
 #define LED_RED_PIN_NUMBER 18
+#define LED_GREEN_PIN_NUMBER 25
 
 #define LED_BLINK_DELAY_NORMAL_MS  750
 #define LED_BLINK_DELAY_LOADING_MS 100
@@ -24,5 +25,9 @@ void led_blink_update(LedBlinkType blink_type);
 void led_red_init(void);
 void led_red_low(void);
 void led_red_high(void);
+
+void led_green_init(void);
+void led_green_low(void);
+void led_green_high(void);
 
 #endif /* __LED_H__ */

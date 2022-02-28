@@ -4,6 +4,7 @@
 
 const uint LED_PIN = LED_PIN_NUMBER;
 const uint TEST_RED_PIN = LED_RED_PIN_NUMBER;
+const uint TEST_GREEN_PIN = LED_GREEN_PIN_NUMBER;
 
 static uint32_t blink_delay[] =
 {
@@ -64,4 +65,20 @@ void led_red_low(void)
 void led_red_high(void)
 {
     gpio_put(TEST_RED_PIN, 1);
+}
+
+void led_green_init(void)
+{
+    gpio_init(TEST_GREEN_PIN);
+    gpio_set_dir(TEST_GREEN_PIN, GPIO_OUT);
+}
+
+void led_green_low(void)
+{
+    gpio_put(TEST_GREEN_PIN, 0);
+}
+
+void led_green_high(void)
+{
+    gpio_put(TEST_GREEN_PIN, 1);
 }

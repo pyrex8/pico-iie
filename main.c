@@ -92,8 +92,8 @@
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
 // When running full speed total should add up to 65 cycles
-#define VIDEO_SCAN_LINE_CLK_CYCLES_ODD 25
-#define VIDEO_SCAN_LINE_CLK_CYCLES_EVEN 15
+#define VIDEO_SCAN_LINE_CLK_CYCLES_ODD 20 //25
+#define VIDEO_SCAN_LINE_CLK_CYCLES_EVEN 10 //15
 
 #define VIDEO_BYTES_PER_LINE 40
 
@@ -236,10 +236,15 @@ void uart_data(void)
             {
                 serial_loader = SERIAL_READY;
                 bin_address = 0;
-                // __disable_irq();
-                rom_reset_vector_write(0x03, 0x08);
-                c6502_reset(&interface_c);
-                // __enable_irq();
+                // irq_set_enabled(PWM_IRQ_WRAP, false);
+                // rom_reset_vector_write(0x03, 0x08);
+                // c6502_reset(&interface_c);
+                // irq_set_enabled(PWM_IRQ_WRAP, true);
+                led_green_low();
+            }
+            else
+            {
+                led_green_high();
             }
             // Note: CALL -151
             // 0803G
@@ -409,8 +414,8 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
 int main(void)
 {
     clock_init();
-    led_blink_init(BACKGROUND_LOOP_DELAY_MS);
     led_red_init();
+    led_green_init();
     test0_pin_init();
     test1_pin_init();
 
@@ -473,15 +478,5 @@ int main(void)
 
     while (1)
     {
-        if(serial_loader == SERIAL_BIN)
-        {
-            led_red_high();
-        }
-        else
-        {
-            led_red_low();
-        }
-        // led_blink_update(LED_BLINK_NORMAL);
-        // sleep_ms(BACKGROUND_LOOP_DELAY_MS);
     }
 }
