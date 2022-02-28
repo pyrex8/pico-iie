@@ -188,8 +188,6 @@ static uint8_t button_1 = 0;
 
 static bool reset = false;
 
-static uint8_t ser_byte = 0x81;
-
 void uart_data(void)
 {
     uint8_t serial_byte = 0;
@@ -197,8 +195,6 @@ void uart_data(void)
     if(uart_is_readable(UART_ID))
     {
         serial_byte = uart_getc(UART_ID);
-//        serial_byte = uart_get_hw(UART_ID)->dr & 0xFF;
-        ser_byte = serial_byte;
 
         if(serial_loader == SERIAL_USER)
         {
@@ -231,23 +227,23 @@ void uart_data(void)
             }
         }
 
-//         if(serial_loader == SERIAL_BIN)
-//         {
-//             ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
-//             bin_address++;
-//             // 32k = 0x8000
-//             if (bin_address > 0x8000)
-//             {
-//                 serial_loader = SERIAL_READY;
-//                 bin_address = 0;
-//                 // __disable_irq();
-//                 // rom_reset_vector_write(0x03, 0x08);
-//                 // c6502_reset(&interface_c);
-//                 // __enable_irq();
-//             }
-//             // Note: CALL -151
-//             // 0803G
-//         }
+        if(serial_loader == SERIAL_BIN)
+        {
+            ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
+            bin_address++;
+            // 32k = 0x8000
+            if (bin_address > 0x8000)
+            {
+                serial_loader = SERIAL_READY;
+                bin_address = 0;
+                // __disable_irq();
+                rom_reset_vector_write(0x03, 0x08);
+                c6502_reset(&interface_c);
+                // __enable_irq();
+            }
+            // Note: CALL -151
+            // 0803G
+        }
 //         if(serial_loader == SERIAL_DISK)
 //         {
 //             disk_nib_file_data_set(disk_address, serial_byte);
@@ -477,6 +473,14 @@ int main(void)
 
     while (1)
     {
+        if(serial_loader == SERIAL_BIN)
+        {
+            led_red_high();
+        }
+        else
+        {
+            led_red_low();
+        }
         // led_blink_update(LED_BLINK_NORMAL);
         // sleep_ms(BACKGROUND_LOOP_DELAY_MS);
     }
