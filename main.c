@@ -174,8 +174,8 @@ int16_t overscan_line;
 uint8_t overscan_line_odd;
 uint16_t h_pixel;
 
-uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
-uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
+uint16_t scan_line_buffer[VIDEO_SCAN_LINE_LEN] = {0};
+uint16_t scan_line_blank[VIDEO_SCAN_LINE_LEN] = {0};
 uint16_t *p_scan_line_buffer;
 
 static SerialMode serial_loader = SERIAL_READY;
@@ -499,7 +499,7 @@ int main(void)
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        VIDEO_SCAN_BUFFER_LEN - 3,
+        VIDEO_SCAN_LINE_LEN - 1,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
