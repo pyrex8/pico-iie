@@ -33,7 +33,10 @@ target_link_libraries(
     hardware_vreg
     hardware_pio
     hardware_dma
-    hardware_pwm)
+    hardware_pwm
+    hardware_irq
+    hardware_structs
+    )
 
     add_compile_options(-Wall
             -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int

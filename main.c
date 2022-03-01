@@ -9,6 +9,7 @@
 #include "pico/binary_info.h"
 #include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
+#include "hardware/structs/bus_ctrl.h"
 
 #include "common/rom.h"
 #include "common/ram.h"
@@ -175,6 +176,7 @@ uint16_t h_pixel;
 
 uint16_t scan_line_buffer[VIDEO_SCAN_BUFFER_LEN] = {0};
 uint16_t scan_line_blank[VIDEO_SCAN_BUFFER_LEN] = {0};
+uint16_t *p_scan_line_buffer;
 
 static SerialMode serial_loader = SERIAL_READY;
 static UserState user_state = SERIAL_USER_KEYBOARD;
@@ -370,7 +372,7 @@ void main_run(uint8_t clk_cycles)
 
 void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_line(void)
 {
-    dma_channel_set_read_addr(pio_dma_chan, scan_line_buffer, true);
+//    dma_channel_set_read_addr(pio_dma_chan, scan_line_buffer, true);
 
     test0_pin_high();
 
@@ -426,6 +428,10 @@ int main(void)
 
     main_init();
 
+    bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_DMA_R_BITS;
+
+    p_scan_line_buffer = scan_line_buffer;
+
     pio = pio0;
     offset = pio_add_program(pio, &parallel_program);
     sm = pio_claim_unused_sm(pio, true);
@@ -459,12 +465,33 @@ int main(void)
     pwm_set_wrap(pclk_slice, PCLK_PWM_COUNT);
     pwm_set_chan_level(pclk_slice, pclk_channel, PCLK_PWM_VALUE);
 
+    int ctrl_chan = dma_claim_unused_channel(true);
     pio_dma_chan = dma_claim_unused_channel(true);
+
+     // Setup the control channel
+     dma_channel_config c = dma_channel_get_default_config(ctrl_chan); // default configs
+     channel_config_set_transfer_data_size(&c, DMA_SIZE_32); // 32-bit txfers
+     channel_config_set_read_increment(&c, false); // no read incrementing
+     channel_config_set_write_increment(&c, false); // no write incrementing
+     channel_config_set_chain_to(&c, pio_dma_chan);
+     channel_config_set_dreq(&c, DREQ_PWM_WRAP0 + pclk_slice);
+
+     dma_channel_configure(
+         ctrl_chan,
+         &c,
+         &dma_hw->ch[pio_dma_chan].al3_read_addr_trig,
+         &p_scan_line_buffer,
+         1,
+         false
+     );
+
+
     dma_channel_config pio_dma_chan_config = dma_channel_get_default_config(pio_dma_chan);
 
     channel_config_set_transfer_data_size(&pio_dma_chan_config, DMA_SIZE_16);
     channel_config_set_read_increment(&pio_dma_chan_config, true);
     channel_config_set_write_increment(&pio_dma_chan_config, false);
+    channel_config_set_chain_to(&pio_dma_chan_config, ctrl_chan);
     channel_config_set_dreq(&pio_dma_chan_config, DREQ_PWM_WRAP0 + pclk_slice);
 
     dma_channel_configure(
@@ -472,7 +499,7 @@ int main(void)
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        VIDEO_SCAN_BUFFER_LEN,
+        VIDEO_SCAN_BUFFER_LEN - 1,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
