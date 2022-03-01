@@ -499,7 +499,7 @@ int main(void)
         &pio_dma_chan_config,
         &pio->txf[sm],
         scan_line_buffer,
-        VIDEO_SCAN_BUFFER_LEN - 1,
+        VIDEO_SCAN_BUFFER_LEN - 3,
         true);
 
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
