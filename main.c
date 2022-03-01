@@ -370,7 +370,8 @@ void main_run(uint8_t clk_cycles)
 
 void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_line(void)
 {
-    dma_hw->ch[pio_dma_chan].al3_read_addr_trig = (io_rw_32)scan_line_buffer;
+    dma_channel_set_read_addr(pio_dma_chan, scan_line_buffer, true);
+
     test0_pin_high();
 
     overscan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
