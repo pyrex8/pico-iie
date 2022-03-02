@@ -415,6 +415,15 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     uart_data();
     joystick_scanline_update(video_scan_line_cycles);
 
+    if (disk_spinning_test())
+    {
+        led_red_high();
+    }
+    else
+    {
+        led_red_low();
+    }
+
     test0_pin_low();
 }
 

@@ -348,16 +348,9 @@ void WriteTrack(void)
   disk_track_new_data = 0;
 }
 
-uint8_t disk_not_spinning_test(void)
+uint8_t disk_spinning_test(void)
 {
-    if (disk_motor_on)
-    {
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+    return disk_motor_on;
 }
 
 uint8_t disk_control_stepper(uint8_t command)
