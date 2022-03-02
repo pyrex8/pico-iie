@@ -120,9 +120,9 @@ uint16_t C(uint16_t x)
 }
 
 
-void nibblized_track(uint8_t track, uint8_t *disk_data, uint8_t *track_image)
+void nibblized_track(uint8_t track, uint8_t disk_data[], uint8_t track_image[])
 {
-    uint8_t track_index = 0;
+    uint32_t track_index = 0;
     uint32_t data_index = 0;
     uint32_t disk_data_index = 0 ;
     uint8_t data_pass_1[DISK_SECTOR_NIB_SIZE];
