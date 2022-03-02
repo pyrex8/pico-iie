@@ -60,7 +60,7 @@
 
 static uint8_t memory_disk_rom[DISK_ROM_SIZE] = {0};
 static uint8_t disk_data[DISK_SIZE] = {0};   // 143360 bytes 140kb
-static uint8_t *disk_nib_track = disk_data;
+static uint8_t disk_nib_track[DISK_NIB_TRACK_SIZE] = {0};
 static uint8_t disk_track = 0;
 static uint8_t disk_phase = 0;
 static uint8_t disk_track_ready = 0;
@@ -119,96 +119,132 @@ uint16_t C(uint16_t x)
     return (((x) & 0x01) << 1) | (((x) & 0x02) >> 1);
 }
 
-#if 0
-void nibblized_track(track, disk_data, track_image)
+
+void nibblized_track(uint8_t track, uint8_t *disk_data, uint8_t *track_image)
 {
-    track_index = 0
-    disk_data_index = 0
-    data_pass_1 = bytearray(DISK_SECTOR_NIB_SIZE)
-    data_pass_2 = bytearray(DISK_SECTOR_NIB_SIZE)
-    track_image = bytearray(DISK_NIB_TRACK_SIZE)
+    uint8_t track_index = 0;
+    uint32_t data_index = 0;
+    uint32_t disk_data_index = 0 ;
+    uint8_t data_pass_1[DISK_SECTOR_NIB_SIZE];
+    uint8_t data_pass_2[DISK_SECTOR_NIB_SIZE];
 
-    track_image[track_index:track_index + 48] = [DISK_SELF_SYNC_BYTE] * 48
-    track_index += 48
+    for (int i = 0; i < 48; i++)
+    {
+        track_image[track_index] = DISK_SELF_SYNC_BYTE;
+        track_index++;
+    }
 
-    # address field
-    for sector in range(16):
+    // address field
+    for (int sector = 0; sector < 16; sector++)
+    {
+        track_image[track_index] = 0xD5;
+        track_index++;
+        track_image[track_index] = 0xAA;
+        track_index++;
+        track_image[track_index] = 0x96;
+        track_index++;
 
-        track_image[track_index:track_index + 3] = [0xD5, 0xAA, 0x96]
-        track_index += 3
+        track_image[track_index] = A(VOLUME);
+        track_index++;
+        track_image[track_index] = B(VOLUME);
+        track_index++;
 
-        track_image[track_index:track_index + 2] = [A(VOLUME), B(VOLUME)]
-        track_index += 2
+        track_image[track_index] = A(track);
+        track_index++;
+        track_image[track_index] = B(track);
+        track_index++;
 
-        track_image[track_index:track_index + 2] = [A(track), B(track)]
-        track_index += 2
+        track_image[track_index] = A(sector);
+        track_index++;
+        track_image[track_index] = B(sector);
+        track_index++;
 
-        track_image[track_index:track_index + 2] = [A(sector), B(sector)]
-        track_index += 2
+        track_image[track_index] = A(VOLUME ^ track ^ sector);
+        track_index++;
+        track_image[track_index] = B(VOLUME ^ track ^ sector);
+        track_index++;
 
-        track_image[track_index] = A(VOLUME ^ track ^ sector)
-        track_index += 1
-        track_image[track_index] = B(VOLUME ^ track ^ sector)
-        track_index += 1
+        track_image[track_index] = 0xDE;
+        track_index++;
+        track_image[track_index] = 0xAA;
+        track_index++;
+        track_image[track_index] = 0xEB;
+        track_index++;
 
-        track_image[track_index:track_index + 3] = [0xDE, 0xAA, 0xEB]
-        track_index += 3
+        // gap 2
+        for (int i = 0; i < 6; i++)
+        {
+            track_image[track_index] = DISK_SELF_SYNC_BYTE;
+            track_index++;
+        }
 
-        # gap 2
-        track_image[track_index:track_index + 6] = [DISK_SELF_SYNC_BYTE] * 6
-        track_index += 6
+       // data field
+       track_image[track_index] = 0xD5;
+       track_index++;
+       track_image[track_index] = 0xAA;
+       track_index++;
+       track_image[track_index] = 0xAD;
+       track_index++;
 
-        # data field
-        track_image[track_index:track_index + 3] = [0xD5, 0xAA, 0xAD]
-        track_index += 3
+        sector_start_location = sectornumber[sector] << 8;
+        disk_data_index = (track << 12) + sector_start_location;
 
-        sector_start_location = sectornumber[sector] << 8
-        disk_data_index = (track << 12) + sector_start_location
+        // Convert the 256 8-bit bytes into 342 6-bit bytes
+        data_index = 0;
+        offset = 0xAC;
 
-        # Convert the 256 8-bit bytes into 342 6-bit bytes
-        data_index = 0
-        offset = 0xAC
+        while (offset != 0x02)
+        {
+            value = 0;
+            value = (value << 2) | C(disk_data[disk_data_index + offset]);
+            offset = (0x100 + offset - 0x56) & 0xFF;
+            value = (value << 2) | C(disk_data[disk_data_index + offset]);
+            offset = (0x100 + offset - 0x56) & 0xFF;
+            value = (value << 2) | C(disk_data[disk_data_index + offset]);
+            offset = (0x100 + offset - 0x53) & 0xFF;
+            data_pass_1[data_index] = (value << 2)  & 0xFF;
+            data_index += 1;
+        }
 
-        while offset != 0x02:
-            value = 0
-            value = (value << 2) | C(disk_data[disk_data_index + offset])
-            offset = (0x100 + offset - 0x56) & 0xFF
-            value = (value << 2) | C(disk_data[disk_data_index + offset])
-            offset = (0x100 + offset - 0x56) & 0xFF
-            value = (value << 2) | C(disk_data[disk_data_index + offset])
-            offset = (0x100 + offset - 0x53) & 0xFF
-            data_pass_1[data_index] = (value << 2)  & 0xFF
-            data_index += 1
+        for (int i = 0; i < DISK_SECTOR_SIZE; i++)
+        {
+            data_pass_1[data_index] = disk_data[disk_data_index + i];
+            data_index++;
+        }
 
-        for i in range(DISK_SECTOR_SIZE):
-            data_pass_1[data_index] = disk_data[disk_data_index + i]
-            data_index += 1
-
-        # XOR data block with itself offset by one byte. Checksum is 343rd byte
+        // XOR data block with itself offset by one byte. Checksum is 343rd byte
         value  = 0;
-        for i in range(DISK_SECTOR_NIB_SIZE - 1):
-            data_pass_2[i] = (value ^ data_pass_1[i]) & 0xFF
-            value = data_pass_1[i]
+        for (int i = 0; i < DISK_SECTOR_NIB_SIZE - 1; i++)
+        {
+            data_pass_2[i] = (value ^ data_pass_1[i]) & 0xFF;
+            value = data_pass_1[i];
+        }
 
-        data_pass_2[DISK_SECTOR_NIB_SIZE - 1] = value
+        data_pass_2[DISK_SECTOR_NIB_SIZE - 1] = value;
 
-        # Convert 6-bit bytes into disk bytes using lookup table.
-        for i in range(DISK_SECTOR_NIB_SIZE):
-            track_image[track_index + i] = diskbyte[(data_pass_2[i]) >> 2]
+        // Convert 6-bit bytes into disk bytes using lookup table.
+        for (int i = 0; i < DISK_SECTOR_NIB_SIZE; i++)
+        {
+            track_image[track_index] = diskbyte[(data_pass_2[i]) >> 2];
+            track_index++;
+        }
 
-        track_index += DISK_SECTOR_NIB_SIZE
+        track_image[track_index] = 0xDE;
+        track_index++;
+        track_image[track_index] = 0xAA;
+        track_index++;
+        track_image[track_index] = 0xEB;
+        track_index++;
 
-        track_image[track_index:track_index + 3] = [0xDE, 0xAA, 0xEB]
-        track_index += 3
+        // gap 3
+        for (int i = 0; i < 27; i++)
+        {
+            track_image[track_index] = DISK_SELF_SYNC_BYTE;
+            track_index++;
+        }
+    }
 
-        # gap 3
-        track_image[track_index:track_index + 27] = [DISK_SELF_SYNC_BYTE] * 27
-        track_index += 27
-
-    return track_image
 }
-#endif
-
 
 void disk_init(void)
 {
@@ -300,7 +336,7 @@ uint8_t MemReturnRandomData(uint8_t highbit)
 
 void ReadTrack(void)
 {
-    disk_nib_track = &disk_data[disk_track * DISK_NIB_TRACK_SIZE];
+    nibblized_track(disk_track, disk_data, disk_nib_track);
 
     disk_track_nibble_loc = 0;
     disk_track_ready = 1;
