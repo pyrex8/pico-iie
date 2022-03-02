@@ -212,6 +212,7 @@ if disk_name != "":
 
     disk_file_len = 0
     disk_file = bytearray()
+    disk_file.append(0x83)
 
     while 1:
 
@@ -228,20 +229,8 @@ if disk_name != "":
     print('disk file length =',disk_file_len)
     disk_image.close()
 
-    disk_nib_file_len = 0
-    disk_nib_byte = 0;
-    disk_nib_data = bytearray()
-    disk_nib_data.append(0x83)
-
-    for disk_track in range(DISK_TRACKS):
-        disk_nib_data.extend(nibblized_track(disk_track, disk_file))
-        for i in range(DISK_NIB_TRACK_SIZE):
-            disk_nib_file_len += 1
-
-    print('disk nib file length =', disk_nib_file_len)
-
     ser.flush()
-    ser.write(disk_nib_data)
+    ser.write(disk_file)
 
     print('Disk:', disk_name)
 

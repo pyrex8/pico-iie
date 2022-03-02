@@ -61,9 +61,9 @@ void serial_data(void)
 //         }
 //         if(serial_loader == SERIAL_DISK)
 //         {
-//             disk_nib_file_data_set(disk_address, serial_byte);
+//             disk_file_data_set(disk_address, serial_byte);
 //             disk_address++;
-//             if (disk_address > 223439)
+//             if (disk_address > 143360)
 //             {
 //                 serial_loader = SERIAL_READY;
 //                 disk_address = 0;

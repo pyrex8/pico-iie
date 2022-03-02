@@ -251,21 +251,26 @@ void uart_data(void)
             // Note: CALL -151
             // 0803G
         }
-//         if(serial_loader == SERIAL_DISK)
-//         {
-//             disk_nib_file_data_set(disk_address, serial_byte);
-//             disk_address++;
-//             if (disk_address > 223439)
-//             {
-//                 serial_loader = SERIAL_READY;
-//                 disk_address = 0;
-// //                __disable_irq();
-// //                main_init();
-// //                disk_init();
-// //                __enable_irq();
-//                 // Note: PR#6 reboot disk
-//             }
-//         }
+        if(serial_loader == SERIAL_DISK)
+        {
+            disk_file_data_set(disk_address, serial_byte);
+            disk_address++;
+            if (disk_address > 143360)
+            {
+                serial_loader = SERIAL_READY;
+                disk_address = 0;
+//                __disable_irq();
+//                main_init();
+//                disk_init();
+//                __enable_irq();
+                led_green_low();
+                // Note: PR#6 reboot disk
+            }
+            else
+            {
+                led_green_high();
+            }
+        }
         if(serial_loader == SERIAL_READY)
         {
             if(serial_byte == SERIAL_USER)
@@ -332,7 +337,7 @@ void main_run(uint8_t clk_cycles)
         c6502_update(&interface_c);
         ram_update(interface_c.rw, interface_c.address, &interface_c.data);
         rom_update(interface_c.rw, interface_c.address, &interface_c.data);
-//        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
+        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
         keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
         joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
         speaker_update(interface_c.rw, interface_c.address, &interface_c.data);

@@ -38,6 +38,18 @@
 #define DISK_Q7H        (0x0F + DISK_COMMANDS_ADDRESS)
 
 #define DISK_TRACKS   35
+#define DISK_SECTORS 16
+#define DISK_SECTOR_SIZE 256
+#define DISK_SECTOR_NIB_SIZE 343
+
+#define DISK_SELF_SYNC_BYTE 0xFF
+
+#define DISK_BITS_EVEN 0xAA
+#define DISK_BITS_ODD 0x55
+
+#define DISK_TRACK_SIZE (DISK_SECTORS * DISK_SECTOR_SIZE)
+#define DISK_SIZE (DISK_TRACKS * DISK_TRACK_SIZE)
+
 #define DISK_NIB_TRACK_SIZE 6384 // 6.23k
 #define DISK_NIB_SIZE (DISK_TRACKS * DISK_NIB_TRACK_SIZE)
 
@@ -45,8 +57,8 @@
 #define  MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 static uint8_t memory_disk_rom[DISK_ROM_SIZE] = {0};
-static uint8_t disk_nib_data[DISK_NIB_SIZE] = {0};   // 218.2k
-static uint8_t *disk_nib_track = disk_nib_data;
+static uint8_t disk_data[DISK_SIZE] = {0};   // 143360 bytes 140kb
+static uint8_t *disk_nib_track = disk_data;
 static uint8_t disk_track = 0;
 static uint8_t disk_phase = 0;
 static uint8_t disk_track_ready = 0;
@@ -158,7 +170,7 @@ uint8_t MemReturnRandomData(uint8_t highbit)
 
 void ReadTrack(void)
 {
-    disk_nib_track = &disk_nib_data[disk_track * DISK_NIB_TRACK_SIZE];
+    disk_nib_track = &disk_data[disk_track * DISK_NIB_TRACK_SIZE];
 
     disk_track_nibble_loc = 0;
     disk_track_ready = 1;
@@ -292,7 +304,7 @@ uint8_t disk_write_mode_set(uint8_t command)
     return MemReturnRandomData(1);
 }
 
-void disk_nib_file_data_set(uint32_t location, uint8_t data)
+void disk_file_data_set(uint32_t location, uint8_t data)
 {
-  disk_nib_data[location] = data;
+  disk_data[location] = data;
 }
