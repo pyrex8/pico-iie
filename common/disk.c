@@ -53,6 +53,8 @@
 #define DISK_NIB_TRACK_SIZE 6384 // 6.23k
 #define DISK_NIB_SIZE (DISK_TRACKS * DISK_NIB_TRACK_SIZE)
 
+#define VOLUME 0xFE
+
 #define  MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define  MIN(a,b) (((a) < (b)) ? (a) : (b))
 
@@ -69,6 +71,28 @@ static uint8_t disk_motor_on = 0;
 static uint8_t disk_write_mode = 0;
 static uint8_t disk_stepper_phases = 0;
 static uint8_t disk_write = 0;
+static uint32_t sector_start_location = 0;
+static uint32_t offset = 0;
+static uint32_t value = 0;
+
+// 2 and 6 write translate table
+uint8_t diskbyte[] =
+{
+    0x96,0x97,0x9A,0x9B,0x9D,0x9E,0x9F,0xA6,
+    0xA7,0xAB,0xAC,0xAD,0xAE,0xAF,0xB2,0xB3,
+    0xB4,0xB5,0xB6,0xB7,0xB9,0xBA,0xBB,0xBC,
+    0xBD,0xBE,0xBF,0xCB,0xCD,0xCE,0xCF,0xD3,
+    0xD6,0xD7,0xD9,0xDA,0xDB,0xDC,0xDD,0xDE,
+    0xDF,0xE5,0xE6,0xE7,0xE9,0xEA,0xEB,0xEC,
+    0xED,0xEE,0xEF,0xF2,0xF3,0xF4,0xF5,0xF6,
+    0xF7,0xF9,0xFA,0xFB,0xFC,0xFD,0xFE,0xFF,
+};
+
+uint8_t sectornumber[] =
+{
+    0x00,0x07,0x0E,0x06,0x0D,0x05,0x0C,0x04,
+    0x0B,0x03,0x0A,0x02,0x09,0x01,0x08,0x0F,
+};
 
 uint8_t disk_spinning_test(void);
 
@@ -79,6 +103,112 @@ uint8_t disk_read_write(uint8_t command);
 uint8_t disk_latch_value_set(uint8_t read, uint8_t byte);
 uint8_t disk_read_mode_set(uint8_t command);
 uint8_t disk_write_mode_set(uint8_t command);
+
+uint16_t A(uint16_t x)
+{
+    return ((((x) >> 1) & DISK_BITS_ODD) | DISK_BITS_EVEN);
+}
+
+uint16_t B(uint16_t x)
+{
+    return (((x) & DISK_BITS_ODD) | DISK_BITS_EVEN);
+}
+
+uint16_t C(uint16_t x)
+{
+    return (((x) & 0x01) << 1) | (((x) & 0x02) >> 1);
+}
+
+#if 0
+void nibblized_track(track, disk_data, track_image)
+{
+    track_index = 0
+    disk_data_index = 0
+    data_pass_1 = bytearray(DISK_SECTOR_NIB_SIZE)
+    data_pass_2 = bytearray(DISK_SECTOR_NIB_SIZE)
+    track_image = bytearray(DISK_NIB_TRACK_SIZE)
+
+    track_image[track_index:track_index + 48] = [DISK_SELF_SYNC_BYTE] * 48
+    track_index += 48
+
+    # address field
+    for sector in range(16):
+
+        track_image[track_index:track_index + 3] = [0xD5, 0xAA, 0x96]
+        track_index += 3
+
+        track_image[track_index:track_index + 2] = [A(VOLUME), B(VOLUME)]
+        track_index += 2
+
+        track_image[track_index:track_index + 2] = [A(track), B(track)]
+        track_index += 2
+
+        track_image[track_index:track_index + 2] = [A(sector), B(sector)]
+        track_index += 2
+
+        track_image[track_index] = A(VOLUME ^ track ^ sector)
+        track_index += 1
+        track_image[track_index] = B(VOLUME ^ track ^ sector)
+        track_index += 1
+
+        track_image[track_index:track_index + 3] = [0xDE, 0xAA, 0xEB]
+        track_index += 3
+
+        # gap 2
+        track_image[track_index:track_index + 6] = [DISK_SELF_SYNC_BYTE] * 6
+        track_index += 6
+
+        # data field
+        track_image[track_index:track_index + 3] = [0xD5, 0xAA, 0xAD]
+        track_index += 3
+
+        sector_start_location = sectornumber[sector] << 8
+        disk_data_index = (track << 12) + sector_start_location
+
+        # Convert the 256 8-bit bytes into 342 6-bit bytes
+        data_index = 0
+        offset = 0xAC
+
+        while offset != 0x02:
+            value = 0
+            value = (value << 2) | C(disk_data[disk_data_index + offset])
+            offset = (0x100 + offset - 0x56) & 0xFF
+            value = (value << 2) | C(disk_data[disk_data_index + offset])
+            offset = (0x100 + offset - 0x56) & 0xFF
+            value = (value << 2) | C(disk_data[disk_data_index + offset])
+            offset = (0x100 + offset - 0x53) & 0xFF
+            data_pass_1[data_index] = (value << 2)  & 0xFF
+            data_index += 1
+
+        for i in range(DISK_SECTOR_SIZE):
+            data_pass_1[data_index] = disk_data[disk_data_index + i]
+            data_index += 1
+
+        # XOR data block with itself offset by one byte. Checksum is 343rd byte
+        value  = 0;
+        for i in range(DISK_SECTOR_NIB_SIZE - 1):
+            data_pass_2[i] = (value ^ data_pass_1[i]) & 0xFF
+            value = data_pass_1[i]
+
+        data_pass_2[DISK_SECTOR_NIB_SIZE - 1] = value
+
+        # Convert 6-bit bytes into disk bytes using lookup table.
+        for i in range(DISK_SECTOR_NIB_SIZE):
+            track_image[track_index + i] = diskbyte[(data_pass_2[i]) >> 2]
+
+        track_index += DISK_SECTOR_NIB_SIZE
+
+        track_image[track_index:track_index + 3] = [0xDE, 0xAA, 0xEB]
+        track_index += 3
+
+        # gap 3
+        track_image[track_index:track_index + 27] = [DISK_SELF_SYNC_BYTE] * 27
+        track_index += 27
+
+    return track_image
+}
+#endif
+
 
 void disk_init(void)
 {

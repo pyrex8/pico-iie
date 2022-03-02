@@ -1,6 +1,7 @@
-#pragma once
+#ifndef __ROM_DATA_H__
+#define __ROM_DATA_H__
 
-const int8_t apple2e_enhanced_rom[] =
+const int8_t iie_enhanced_rom[] =
         "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
@@ -1027,4 +1028,4 @@ const int8_t apple2e_enhanced_rom[] =
         "\x83\x7F\x5D\xCC\xB5\xFC\x17\x17\xF5\x03\xFB\x03\x62\xFA\xFA\xC3"
         ;
 
-/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+#endif /* __ROM_DATA_H__ */

@@ -18,7 +18,7 @@ static uint8_t rom_in_ram[ROM_SIZE];
 
 void rom_init(void)
 {
-    memcpy(rom_in_ram, apple2e_enhanced_rom, ROM_SIZE);
+    memcpy(rom_in_ram, iie_enhanced_rom, ROM_SIZE);
 }
 
 void rom_update(uint8_t read, uint16_t address, uint8_t *byte)
