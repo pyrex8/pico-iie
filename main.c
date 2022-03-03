@@ -93,10 +93,6 @@
 
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
-// When running full speed total should add up to 65 cycles
-#define VIDEO_SCAN_LINE_CLK_CYCLES_ODD 30 //25
-#define VIDEO_SCAN_LINE_CLK_CYCLES_EVEN 30 //15
-
 #define VIDEO_BYTES_PER_LINE 40
 
 #define VIDEO_SEGMENT_OFFSET 0x28
@@ -154,7 +150,6 @@ static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
 static uint8_t video_mode = VIDEO_TEXT_MODE;
 static uint8_t video_page = VIDEO_PAGE_1;
-static uint8_t video_scan_line_cycles;
 
 PIO pio;
 uint offset;
@@ -351,12 +346,10 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     if (overscan_line_odd)
     {
         video_buffer_get(&scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET]);
-        video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_ODD;
     }
     else
     {
         scan_line_ram_read();
-        video_scan_line_cycles = VIDEO_SCAN_LINE_CLK_CYCLES_EVEN;
     }
 
     pwm_clear_irq(hsync_slice);
@@ -367,7 +360,6 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     }
 
     uart_data();
-    joystick_scanline_update(video_scan_line_cycles);
 
     if (disk_spinning_test())
     {
