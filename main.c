@@ -1,15 +1,16 @@
 #include <string.h>
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "pico/binary_info.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "hardware/pwm.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
-#include "parallel.pio.h"
-#include "pico/binary_info.h"
 #include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 #include "hardware/structs/bus_ctrl.h"
+#include "parallel.pio.h"
 
 #include "common/rom.h"
 #include "common/ram.h"
@@ -410,7 +411,7 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
     }
 
-    main_run(video_scan_line_cycles);
+//    main_run(video_scan_line_cycles);
 
     uart_data();
     joystick_scanline_update(video_scan_line_cycles);
@@ -427,6 +428,54 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     test0_pin_low();
 }
 
+int core1_main(void)
+{
+    while (1)
+    {
+        test1_pin_high();
+        c6502_update(&interface_c);
+        test1_pin_low();
+
+        ram_update(interface_c.rw, interface_c.address, &interface_c.data);
+        rom_update(interface_c.rw, interface_c.address, &interface_c.data);
+        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
+        keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
+        joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
+        speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
+
+        if (interface_c.address == 0xC019)
+        {
+            if (scan_line < VIDEO_SCAN_LINES_VISIBLE)
+            {
+                interface_c.data = 0x80;
+            }
+            else
+            {
+                interface_c.data = 0;
+            }
+        }
+
+        if (interface_c.address == 0xC054)
+        {
+            video_page = VIDEO_PAGE_1;
+        }
+        if (interface_c.address == 0xC055)
+        {
+            video_page = VIDEO_PAGE_2;
+        }
+
+        if (interface_c.address == 0xC050)
+        {
+            video_mode = VIDEO_GRAPHICS_MODE;
+        }
+
+        if (interface_c.address == 0xC051)
+        {
+            video_mode = VIDEO_TEXT_MODE;
+        }
+    }
+}
+
 int main(void)
 {
     clock_init();
@@ -440,6 +489,8 @@ int main(void)
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
     main_init();
+
+    multicore_launch_core1(core1_main);
 
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_DMA_R_BITS;
 
