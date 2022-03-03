@@ -94,8 +94,8 @@
 #define VIDEO_SCAN_LINES_VISIBLE 192
 
 // When running full speed total should add up to 65 cycles
-#define VIDEO_SCAN_LINE_CLK_CYCLES_ODD 20 //25
-#define VIDEO_SCAN_LINE_CLK_CYCLES_EVEN 10 //15
+#define VIDEO_SCAN_LINE_CLK_CYCLES_ODD 30 //25
+#define VIDEO_SCAN_LINE_CLK_CYCLES_EVEN 30 //15
 
 #define VIDEO_BYTES_PER_LINE 40
 
@@ -225,51 +225,6 @@ void main_init(void)
     video_init();
     c6502_init();
     speaker_init();
-}
-
-void main_run(uint8_t clk_cycles)
-{
-    for(int i = 0; i < clk_cycles; i++)
-    {
-        c6502_update(&interface_c);
-        ram_update(interface_c.rw, interface_c.address, &interface_c.data);
-        rom_update(interface_c.rw, interface_c.address, &interface_c.data);
-        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
-        keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
-        joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
-        speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
-
-        if (interface_c.address == 0xC019)
-        {
-            if (scan_line < VIDEO_SCAN_LINES_VISIBLE)
-            {
-                interface_c.data = 0x80;
-            }
-            else
-            {
-                interface_c.data = 0;
-            }
-        }
-
-        if (interface_c.address == 0xC054)
-        {
-            video_page = VIDEO_PAGE_1;
-        }
-        if (interface_c.address == 0xC055)
-        {
-            video_page = VIDEO_PAGE_2;
-        }
-
-        if (interface_c.address == 0xC050)
-        {
-            video_mode = VIDEO_GRAPHICS_MODE;
-        }
-
-        if (interface_c.address == 0xC051)
-        {
-            video_mode = VIDEO_TEXT_MODE;
-        }
-    }
 }
 
 void uart_data(void)
@@ -410,8 +365,6 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     {
         memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
     }
-
-//    main_run(video_scan_line_cycles);
 
     uart_data();
     joystick_scanline_update(video_scan_line_cycles);
