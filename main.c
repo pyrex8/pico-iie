@@ -27,16 +27,6 @@
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 
-// time_critical.mutex_enter_blocking
-// .text          0x7dbc = 32188
-// data
-// __bss_start__  __bss_end__ 0x1216c = 74092
-// .flash_end      0xf170 = 61808
-
-#define BACKGROUND_LOOP_DELAY_MS 16
-
-#define LED_BLINK_DELAY_MS 500
-
 // Pixel freq 25.175MHz for VGA Signal 640 x 480 @ 60 Hz
 #define PCLK_DIVIDER_INTEGER 16
 #define PCLK_DIVIDER_FRACT 12
@@ -79,10 +69,6 @@
 #define VIDEO_RESOLUTION_Y 192
 #define VIDEO_BORDER_X ((VGA_H_VISIBLE_AREA / 2 - VIDEO_RESOLUTION_X) / 2)
 #define VIDEO_BORDER_Y ((VGA_V_VISIBLE_AREA / 2 - VIDEO_RESOLUTION_Y) / 2)
-// #define VIDEO_BORDER_Y 10
-
-#define VIDEO_COLOR 0 //0xFFFFF
-#define VIDEO_BORDER_COLOR ((0x1F<<6) & 0xFFFF)
 
 #define VIDEO_SCAN_BUFFER_OFFSET ((VGA_H_BACK_PORCH + (VGA_H_VISIBLE_AREA - VIDEO_RESOLUTION_X * 2) / 2) / 2) //44
 #define VIDEO_SCAN_LINE_OFFSET ((VGA_V_BACK_PORCH + (VGA_V_VISIBLE_AREA - VIDEO_RESOLUTION_Y * 2) / 2))   //40.5 rounded down
@@ -102,15 +88,6 @@ const uint VSYNC_PIN = 17;
 const uint HSYNC_PIN = 19;
 const uint PCLK_PIN = 5;
 const uint R0_PIN = 0;
-
-#define VGA_BLACK  0x0000
-#define VGA_GREEN  0x0608
-#define VGA_PURPLE 0xF9D6
-#define VGA_ORANGE 0x12DD
-#define VGA_BLUE   0xE502
-#define VGA_WHITE  0xFFDF
-
-#define VGA_DISPLAY_VALUE 300
 
 typedef enum
 {
@@ -373,7 +350,7 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     test0_pin_low();
 }
 
-int core1_main(void)
+void core1_main(void)
 {
     while (1)
     {

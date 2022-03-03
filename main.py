@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Apple //e emulator in C and pygame
+pico-iie emulator in C and pygame
 """
 
 import os

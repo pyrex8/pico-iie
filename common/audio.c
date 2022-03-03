@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
-// #include <stdio.h>
 #include "audio.h"
 
 #define TOGGLES_PER_RESET_MAX 0x400

@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
-// #include <stdio.h>
 #include "joystick.h"
 
 #define JOYSTICK_BUTTON0_ADDR 0xC061
