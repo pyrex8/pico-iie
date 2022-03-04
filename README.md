@@ -25,7 +25,7 @@ then start running the bin file with the command ```0803G```
 the game will start
 
 
-[Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "Title")
+![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "Title")
 
 
 
