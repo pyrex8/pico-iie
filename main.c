@@ -247,10 +247,8 @@ void uart_data(void)
             {
                 serial_loader = SERIAL_READY;
                 bin_address = 0;
-                // irq_set_enabled(PWM_IRQ_WRAP, false);
-                // rom_reset_vector_write(0x03, 0x08);
-                // c6502_reset(&interface_c);
-                // irq_set_enabled(PWM_IRQ_WRAP, true);
+                rom_reset_vector_write(0x03, 0x08);
+                reset = true;
                 led_green_low();
             }
             else
@@ -354,6 +352,12 @@ void core1_main(void)
 {
     while (1)
     {
+        if (reset == true)
+        {
+            reset = false;
+            c6502_reset(&interface_c);
+        }
+
         test1_pin_high();
         c6502_update(&interface_c);
         test1_pin_low();
