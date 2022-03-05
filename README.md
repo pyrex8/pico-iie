@@ -23,6 +23,9 @@ Example:
 F1 is used for breaking your program, the same as CRTL-C on the original machine.
 
 There are some simplifications to the emulator.
+
 Only emulates a 48K RAM.
+
 TEXT and HIRES modes only
+
 No blinking text, just NORMAL and INVERSE. FLASH displays as inverse and some odd characters.

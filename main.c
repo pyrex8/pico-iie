@@ -255,8 +255,6 @@ void uart_data(void)
             {
                 led_green_high();
             }
-            // Note: CALL -151
-            // 0803G
         }
         if(serial_loader == SERIAL_DISK)
         {
@@ -266,12 +264,11 @@ void uart_data(void)
             {
                 serial_loader = SERIAL_READY;
                 disk_address = 0;
-//                __disable_irq();
-               main_init();
-               disk_init();
-//                __enable_irq();
+                main_init();
+                disk_init();
+                rom_reset_vector_write(0x62, 0xFA);
+                reset = true;
                 led_green_low();
-                // Note: PR#6 reboot disk
             }
             else
             {
