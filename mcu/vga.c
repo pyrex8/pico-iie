@@ -124,7 +124,7 @@ void vga_init(void)
     pwm_set_mask_enabled ((1 << hsync_slice) | (1 << vsync_slice) | (1 << pclk_slice));
 }
 
-uint16_t vga_overscan_line_get(void)
+int16_t vga_overscan_line_get(void)
 {
     return pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
 }

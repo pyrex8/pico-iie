@@ -56,7 +56,7 @@ static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
 
 uint16_t scan_line;
-uint16_t overscan_line;
+int16_t overscan_line;
 uint8_t overscan_line_odd;
 
 static SerialMode serial_loader = SERIAL_READY;

@@ -73,7 +73,7 @@
 #define SCREEN_LINE_OFFSET 0x80
 
 void vga_init(void);
-uint16_t vga_overscan_line_get(void);
+int16_t vga_overscan_line_get(void);
 uint16_t *vga_scan_line_buffer(void);
 void vga_blank_scan_line_set(void);
 bool vga_scan_line_not_ready(void);
