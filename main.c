@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdbool.h>
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "pico/binary_info.h"
@@ -26,6 +27,7 @@
 #include "mcu/test.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
+#include "mcu/vga.h"
 
 // Pixel freq 25.175MHz for VGA Signal 640 x 480 @ 60 Hz
 #define PCLK_DIVIDER_INTEGER 16
@@ -77,8 +79,6 @@
 #define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
 #define VIDEO_SCAN_LINE_LEN (VGA_H_WHOLE_LINE / 2)
 
-#define VIDEO_SCAN_LINES_VISIBLE 192
-
 #define VIDEO_BYTES_PER_LINE 40
 
 #define VIDEO_SEGMENT_OFFSET 0x28
@@ -94,18 +94,6 @@ typedef enum
     MEMORY_WRITE = 0,
     MEMORY_READ
 } MemoryRWStatus;
-
-typedef enum
-{
-    VIDEO_TEXT_MODE = 0,
-    VIDEO_GRAPHICS_MODE
-} VideoModeStatus;
-
-typedef enum
-{
-    VIDEO_PAGE_1 = 0,
-    VIDEO_PAGE_2
-} VideoPageStatus;
 
 typedef enum
 {
@@ -125,8 +113,6 @@ typedef enum
 static C6502_interface interface_c;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
-static uint8_t video_mode = VIDEO_TEXT_MODE;
-static uint8_t video_page = VIDEO_PAGE_1;
 
 PIO pio;
 uint offset;
@@ -167,10 +153,10 @@ static void scan_line_ram_read(void)
 {
     video_buffer_clear();
 
-    if (video_mode == VIDEO_TEXT_MODE)
+    if (video_is_mode_text())
     {
         video_data_address = 0x400 +
-                            (0x400 * video_page) +
+                            (0x400 * video_page_get()) +
                             (((scan_line>>3) & 0x07) * SCREEN_LINE_OFFSET) +
                             ((scan_line>>6) * VIDEO_SEGMENT_OFFSET);
 
@@ -180,7 +166,7 @@ static void scan_line_ram_read(void)
     else
     {
         video_data_address = 0x2000 +
-                             (0x2000 * video_page) +
+                             (0x2000 * video_page_get()) +
                              (scan_line & 7) * 0x400 +
                              ((scan_line>>3) & 7) * 0x80 +
                              (scan_line>>6) * 0x28;
@@ -313,6 +299,7 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
     else
     {
         scan_line = VIDEO_SCAN_LINES + overscan_line / 2;
+        video_scan_line_set(scan_line);
     }
 
     if (overscan_line_odd)
@@ -365,37 +352,7 @@ void core1_main(void)
         keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
         joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
         speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
-
-        if (interface_c.address == 0xC019)
-        {
-            if (scan_line < VIDEO_SCAN_LINES_VISIBLE)
-            {
-                interface_c.data = 0x80;
-            }
-            else
-            {
-                interface_c.data = 0;
-            }
-        }
-
-        if (interface_c.address == 0xC054)
-        {
-            video_page = VIDEO_PAGE_1;
-        }
-        if (interface_c.address == 0xC055)
-        {
-            video_page = VIDEO_PAGE_2;
-        }
-
-        if (interface_c.address == 0xC050)
-        {
-            video_mode = VIDEO_GRAPHICS_MODE;
-        }
-
-        if (interface_c.address == 0xC051)
-        {
-            video_mode = VIDEO_TEXT_MODE;
-        }
+        video_update(interface_c.rw, interface_c.address, &interface_c.data);
     }
 }
 
@@ -471,7 +428,6 @@ int main(void)
          1,
          false
      );
-
 
     dma_channel_config pio_dma_chan_config = dma_channel_get_default_config(pio_dma_chan);
 

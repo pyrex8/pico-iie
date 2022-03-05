@@ -1,5 +1,3 @@
-#include <stdbool.h>
-#include <stdint.h>
 #include <inttypes.h>
 #include <string.h>
 #include "video.h"
@@ -57,12 +55,61 @@ const uint16_t hcolor[] =
     VGA_WHITE,
 };
 
+typedef enum
+{
+    VIDEO_TEXT_MODE = 0,
+    VIDEO_GRAPHICS_MODE
+} VideoModeStatus;
+
+typedef enum
+{
+    VIDEO_PAGE_1 = 0,
+    VIDEO_PAGE_2
+} VideoPageStatus;
+
 static uint8_t video_char_set[CHARACTER_SET_ROM_SIZE];
 static uint16_t video_buffer[VIDEO_BUFFER_SIZE] = {0};
+static uint8_t video_mode = VIDEO_TEXT_MODE;
+static uint8_t video_page = VIDEO_PAGE_1;
+static uint16_t video_scan_line;
 
 void video_init(void)
 {
     memcpy(video_char_set, char_rom, CHARACTER_SET_ROM_SIZE);
+}
+
+void video_update(uint8_t read, uint16_t address, uint8_t *byte)
+{
+    if (address == 0xC019)
+    {
+        if (video_scan_line < VIDEO_RESOLUTION_Y)
+        {
+            *byte = 0x80;
+        }
+        else
+        {
+            *byte = 0;
+        }
+    }
+
+    if (address == 0xC054)
+    {
+        video_page = VIDEO_PAGE_1;
+    }
+    if (address == 0xC055)
+    {
+        video_page = VIDEO_PAGE_2;
+    }
+
+    if (address == 0xC050)
+    {
+        video_mode = VIDEO_GRAPHICS_MODE;
+    }
+
+    if (address == 0xC051)
+    {
+        video_mode = VIDEO_TEXT_MODE;
+    }
 }
 
 
@@ -165,6 +212,11 @@ void video_text_line_update(uint16_t video_line_number, uint8_t *video_line_data
     }
 }
 
+void video_scan_line_set(uint16_t line)
+{
+    video_scan_line = line;
+}
+
 void video_buffer_clear(void)
 {
     memset(video_buffer, 0, VIDEO_BUFFER_SIZE * 2);
@@ -173,4 +225,14 @@ void video_buffer_clear(void)
 void video_buffer_get(uint16_t *buffer)
 {
     memcpy(buffer, video_buffer, VIDEO_BUFFER_SIZE * 2);
+}
+
+bool video_is_mode_text(void)
+{
+    return video_mode == VIDEO_TEXT_MODE;
+}
+
+uint16_t video_page_get(void)
+{
+    return video_page;
 }
