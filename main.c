@@ -11,7 +11,6 @@
 #include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 
-
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
@@ -28,7 +27,6 @@
 #include "common/audio.h"
 #include "common/video.h"
 #include "common/disk.h"
-
 
 typedef enum
 {
@@ -157,11 +155,6 @@ void uart_data(void)
                 bin_address = 0;
                 rom_reset_vector_write(0x03, 0x08);
                 reset = true;
-                led_green_low();
-            }
-            else
-            {
-                led_green_high();
             }
         }
         if(serial_loader == SERIAL_DISK)
@@ -176,11 +169,6 @@ void uart_data(void)
                 disk_init();
                 rom_reset_vector_write(0x62, 0xFA);
                 reset = true;
-                led_green_low();
-            }
-            else
-            {
-                led_green_high();
             }
         }
         if(serial_loader == SERIAL_READY)
@@ -204,7 +192,7 @@ void uart_data(void)
     }
 }
 
-void core1_main(void)
+void main_core1(void)
 {
     while (1)
     {
@@ -242,7 +230,7 @@ int main(void)
 
     main_init();
 
-    multicore_launch_core1(core1_main);
+    multicore_launch_core1(main_core1);
 
     vga_init();
 
@@ -266,17 +254,9 @@ int main(void)
         }
 
         vga_blank_scan_line_set();
-
         uart_data();
-
-        if (disk_spinning_test())
-        {
-            led_red_high();
-        }
-        else
-        {
-            led_red_low();
-        }
+        led_red_set(disk_is_spinning());
+        led_green_set(serial_loader != SERIAL_READY);
 
         test0_pin_low();
     }

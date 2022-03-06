@@ -93,7 +93,7 @@ uint8_t sectornumber[] =
     0x0B,0x03,0x0A,0x02,0x09,0x01,0x08,0x0F,
 };
 
-uint8_t disk_spinning_test(void);
+uint8_t disk_is_spinning(void);
 
 uint8_t disk_control_stepper(uint8_t command);
 uint8_t disk_control_motor(uint8_t command);
@@ -347,7 +347,7 @@ void WriteTrack(void)
   disk_track_new_data = 0;
 }
 
-uint8_t disk_spinning_test(void)
+uint8_t disk_is_spinning(void)
 {
     return disk_motor_on;
 }
