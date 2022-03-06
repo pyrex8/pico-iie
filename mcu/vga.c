@@ -39,11 +39,25 @@ static uint16_t scan_line_blank[VIDEO_SCAN_LINE_LEN] = {0};
 static uint16_t *p_scan_line_buffer;
 static bool scan_line_old = true;
 
+static uint16_t scan_line;
+static int16_t overscan_line;
+static uint8_t overscan_line_odd;
+
 
 void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_line(void)
 {
     pwm_clear_irq(hsync_slice);
     scan_line_old = false;
+    overscan_line = pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
+    overscan_line_odd = overscan_line & 0x01;
+    if (overscan_line >= 0)
+    {
+        scan_line = overscan_line / 2;
+    }
+    else
+    {
+        scan_line = VIDEO_SCAN_LINES + overscan_line / 2;
+    }
 }
 
 void vga_init(void)
@@ -126,7 +140,7 @@ void vga_init(void)
 
 int16_t vga_overscan_line_get(void)
 {
-    return pwm_get_counter(vsync_slice) / VSYNC_SCAN_MULTIPLIER - VIDEO_SCAN_LINE_OFFSET;
+    return overscan_line;
 }
 
 uint16_t *vga_scan_line_buffer(void)
@@ -136,7 +150,10 @@ uint16_t *vga_scan_line_buffer(void)
 
 void vga_blank_scan_line_set(void)
 {
-    memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
+    if (scan_line >= VIDEO_RESOLUTION_Y)
+    {
+        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
+    }
 }
 
 bool vga_scan_line_not_ready(void)
@@ -147,5 +164,14 @@ bool vga_scan_line_not_ready(void)
 bool vga_scan_line_not_ready_reset(void)
 {
     scan_line_old = true;
+}
 
+bool vga_overscan_line_is_odd(void)
+{
+    return overscan_line_odd;
+}
+
+uint16_t vga_scan_line_get(void)
+{
+    return scan_line;
 }

@@ -79,4 +79,7 @@ void vga_blank_scan_line_set(void);
 bool vga_scan_line_not_ready(void);
 bool vga_scan_line_not_ready_reset(void);
 
+bool vga_overscan_line_is_odd(void);
+uint16_t vga_scan_line_get(void);
+
 #endif /* __VGA_H__ */

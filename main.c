@@ -259,18 +259,9 @@ int main(void)
 
         test0_pin_high();
 
-        overscan_line = vga_overscan_line_get();
-        overscan_line_odd = overscan_line & 0x01;
-
-        if (overscan_line >= 0)
-        {
-            scan_line = overscan_line / 2;
-        }
-        else
-        {
-            scan_line = VIDEO_SCAN_LINES + overscan_line / 2;
-            video_scan_line_set(scan_line);
-        }
+        scan_line = vga_scan_line_get();
+        video_scan_line_set(scan_line);
+        overscan_line_odd = vga_overscan_line_is_odd();
 
         if (overscan_line_odd)
         {
@@ -281,11 +272,7 @@ int main(void)
             scan_line_ram_read();
         }
 
-
-        if (scan_line >= VIDEO_RESOLUTION_Y)
-        {
-            vga_blank_scan_line_set();
-        }
+        vga_blank_scan_line_set();
 
         uart_data();
 
