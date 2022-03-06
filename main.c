@@ -246,16 +246,9 @@ int main(void)
 
     vga_init();
 
-    bool scan_line_nrdy = true;
-
     while (1)
     {
-        scan_line_nrdy = vga_scan_line_not_ready();
-        while(scan_line_nrdy)
-        {
-            scan_line_nrdy = vga_scan_line_not_ready();
-        }
-        vga_scan_line_not_ready_reset();
+        vga_wait_for_new_overscan_line();
 
         test0_pin_high();
 

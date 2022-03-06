@@ -3,7 +3,6 @@
 #include "video.h"
 #include "video_char_data.h"
 
-#define VIDEO_BYTES_PER_LINE 40
 #define VIDEO_RESOLUTION_X 280
 #define VIDEO_RESOLUTION_Y 192
 #define VIDEO_BUFFER_SIZE (VIDEO_RESOLUTION_X)
