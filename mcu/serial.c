@@ -1,10 +1,29 @@
-#include "test.h"
+#include "serial.h"
 #include "pico/stdlib.h"
+
+static SerialMode serial_loader = SERIAL_READY;
+static UserState user_state = SERIAL_USER_KEYBOARD;
+static uint16_t bin_address = 0;
+static uint32_t disk_address = 0;
+
+static uint8_t joystick_x = 0;
+static uint8_t joystick_y = 0;
+static uint8_t button_0 = 0;
+static uint8_t button_1 = 0;
+
+
+void serial_init(void)
+{
+    uart_init(UART_ID, UART_BAUD_RATE);
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+}
 
 void serial_data(void)
 {
 
 #if 0
+
     uint8_t serial_byte = 0;
 
     if(uart_is_readable(UART_ID))
@@ -42,38 +61,33 @@ void serial_data(void)
             }
         }
 
-//         if(serial_loader == SERIAL_BIN)
-//         {
-//             ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
-//             bin_address++;
-//             // 32k = 0x8000
-//             if (bin_address > 0x8000)
-//             {
-//                 serial_loader = SERIAL_READY;
-//                 bin_address = 0;
-//                 // __disable_irq();
-//                 // rom_reset_vector_write(0x03, 0x08);
-//                 // c6502_reset(&interface_c);
-//                 // __enable_irq();
-//             }
-//             // Note: CALL -151
-//             // 0803G
-//         }
-//         if(serial_loader == SERIAL_DISK)
-//         {
-//             disk_file_data_set(disk_address, serial_byte);
-//             disk_address++;
-//             if (disk_address > 143360)
-//             {
-//                 serial_loader = SERIAL_READY;
-//                 disk_address = 0;
-// //                __disable_irq();
-// //                main_init();
-// //                disk_init();
-// //                __enable_irq();
-//                 // Note: PR#6 reboot disk
-//             }
-//         }
+        if(serial_loader == SERIAL_BIN)
+        {
+            ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
+            bin_address++;
+            // 32k = 0x8000
+            if (bin_address > 0x8000)
+            {
+                serial_loader = SERIAL_READY;
+                bin_address = 0;
+                rom_reset_vector_write(0x03, 0x08);
+                reset = true;
+            }
+        }
+        if(serial_loader == SERIAL_DISK)
+        {
+            disk_file_data_set(disk_address, serial_byte);
+            disk_address++;
+            if (disk_address > 143360)
+            {
+                serial_loader = SERIAL_READY;
+                disk_address = 0;
+                main_init();
+                disk_init();
+                rom_reset_vector_write(0x62, 0xFA);
+                reset = true;
+            }
+        }
         if(serial_loader == SERIAL_READY)
         {
             if(serial_byte == SERIAL_USER)
@@ -93,7 +107,6 @@ void serial_data(void)
             }
         }
     }
-    // Note: Call -1184
 
 #endif
 

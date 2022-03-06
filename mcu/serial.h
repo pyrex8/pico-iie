@@ -8,6 +8,22 @@
 #define UART_TX_PIN 20
 #define UART_RX_PIN 21
 
+typedef enum
+{
+    SERIAL_READY = 0x80,
+    SERIAL_USER = 0x81,
+    SERIAL_BIN = 0x82,
+    SERIAL_DISK = 0x83
+} SerialMode;
+
+typedef enum
+{
+    SERIAL_USER_KEYBOARD = 0,
+    SERIAL_USER_JOY_X,
+    SERIAL_USER_JOY_Y,
+} UserState;
+
+void serial_init(void);
 void serial_data(void);
 
 #endif /* __SERIAL_H__ */

@@ -34,21 +34,6 @@ typedef enum
     MEMORY_READ
 } MemoryRWStatus;
 
-typedef enum
-{
-    SERIAL_READY = 0x80,
-    SERIAL_USER = 0x81,
-    SERIAL_BIN = 0x82,
-    SERIAL_DISK = 0x83
-} SerialMode;
-
-typedef enum
-{
-    SERIAL_USER_KEYBOARD = 0,
-    SERIAL_USER_JOY_X,
-    SERIAL_USER_JOY_Y,
-} UserState;
-
 static C6502_interface interface_c;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
@@ -68,6 +53,7 @@ static uint8_t button_0 = 0;
 static uint8_t button_1 = 0;
 
 static bool reset = false;
+static uint8_t running = 1;
 
 static void scan_line_ram_read(void)
 {
@@ -107,6 +93,13 @@ void main_init(void)
 
 void uart_data(void)
 {
+// serial data
+// 1. new keyboard code: 1 byte
+// 2. reset
+// 3. joystick data: 2 bytes
+// 4. bin ram data: byte, location
+// 5. disk data: byte, location
+
     uint8_t serial_byte = 0;
 
     if(uart_is_readable(UART_ID))
@@ -125,6 +118,10 @@ void uart_data(void)
                 else if (serial_byte == 128)
                 {
                     reset = true;
+                }
+                else if (serial_byte == 129)
+                {
+                    running ^= 1;
                 }
                 user_state++;
             }
@@ -202,17 +199,20 @@ void main_core1(void)
             c6502_reset(&interface_c);
         }
 
-        test1_pin_high();
-        c6502_update(&interface_c);
-        test1_pin_low();
+        if (running)
+        {
+            test1_pin_high();
+            c6502_update(&interface_c);
+            test1_pin_low();
 
-        ram_update(interface_c.rw, interface_c.address, &interface_c.data);
-        rom_update(interface_c.rw, interface_c.address, &interface_c.data);
-        disk_update(interface_c.rw, interface_c.address, &interface_c.data);
-        keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
-        joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
-        speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
-        video_update(interface_c.rw, interface_c.address, &interface_c.data);
+            ram_update(interface_c.rw, interface_c.address, &interface_c.data);
+            rom_update(interface_c.rw, interface_c.address, &interface_c.data);
+            disk_update(interface_c.rw, interface_c.address, &interface_c.data);
+            keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
+            joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
+            speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
+            video_update(interface_c.rw, interface_c.address, &interface_c.data);
+        }
     }
 }
 
@@ -223,10 +223,7 @@ int main(void)
     led_green_init();
     test0_pin_init();
     test1_pin_init();
-
-    uart_init(UART_ID, UART_BAUD_RATE);
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    serial_init();
 
     main_init();
 

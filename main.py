@@ -199,6 +199,9 @@ while running:
             if event.key == pygame.K_F1:
                 keycode = 128
 
+            if event.key == pygame.K_F2:
+                keycode = 129
+
             if event.key < 0x7F:
                 keycode = event.key
                 mod = pygame.key.get_mods() #KMOD_SHIFT, #KMOD_CAPS
