@@ -100,6 +100,12 @@ void uart_data(void)
 // 4. bin ram data: byte, location
 // 5. disk data: byte, location
 
+// mode
+// index
+// byte
+
+
+
     uint8_t serial_byte = 0;
 
     if(uart_is_readable(UART_ID))
@@ -128,14 +134,17 @@ void uart_data(void)
             else if (user_state == SERIAL_USER_JOY_X)
             {
                 joystick_x = serial_byte & 0xFE;
+                joystick_pdl0_set(joystick_x);
                 button_0 = serial_byte & 0x01;
+                joystick_btn0_set(button_0);
                 user_state++;
             }
             else
             {
                 joystick_y = serial_byte & 0xFE;
+                joystick_pdl1_set(joystick_y);
                 button_1 = serial_byte & 0x01;
-                joystick_state_set(button_0, button_1, joystick_x, joystick_y);
+                joystick_btn1_set(button_1);
                 user_state = SERIAL_USER_KEYBOARD;
                 serial_loader = SERIAL_READY;
             }
@@ -143,15 +152,18 @@ void uart_data(void)
 
         if(serial_loader == SERIAL_BIN)
         {
-            ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
-            bin_address++;
             // 32k = 0x8000
-            if (bin_address > 0x8000)
+            if (bin_address >= 0x8000)
             {
                 serial_loader = SERIAL_READY;
                 bin_address = 0;
                 rom_reset_vector_write(0x03, 0x08);
                 reset = true;
+            }
+            else
+            {
+                ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
+                bin_address++;
             }
         }
         if(serial_loader == SERIAL_DISK)

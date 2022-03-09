@@ -22,92 +22,43 @@ void serial_init(void)
 void serial_data(void)
 {
 
+}
+
+
+
+// serial options
+// 1. do nothing (0 bytes)
+// 2. write keyboard character (1 byte)
+// 3. reset (0 bytes)
+// 4. pause (1 byte)
+// 5. write joystick button 0
+// 5. write joystick button 0
+// 5. write joystick button 0
+// 5. write joystick button 0
+
+// 6. write ram (1 byte) + 16 bit address
+// 7. start bin (write reset vector (2 bytes) + reset)
+// 8. write disk (1 byte) + 32 bit index
+// 9. start disk (main_init(), disk_init(), write reset vector, reset)
+
 #if 0
 
-    uint8_t serial_byte = 0;
-
-    if(uart_is_readable(UART_ID))
-    {
-        serial_byte = uart_getc(UART_ID);
-
-        if(serial_loader == SERIAL_USER)
-        {
-            // 3 bytes keyboard, joystick_x + button_0, joystick_y + button_1
-            if (user_state == SERIAL_USER_KEYBOARD)
-            {
-                if (serial_byte > 0 && serial_byte < 128)
-                {
-                    keyboard_key_code_set(serial_byte);
-                }
-                else if (serial_byte == 128)
-                {
-                    reset = true;
-                }
-                user_state++;
-            }
-            else if (user_state == SERIAL_USER_JOY_X)
-            {
-                joystick_x = serial_byte & 0xFE;
-                button_0 = serial_byte & 0x01;
-                user_state++;
-            }
-            else
-            {
-                joystick_y = serial_byte & 0xFE;
-                button_1 = serial_byte & 0x01;
-                joystick_state_set(button_0, button_1, joystick_x, joystick_y);
-                user_state = SERIAL_USER_KEYBOARD;
-                serial_loader = SERIAL_READY;
-            }
-        }
-
-        if(serial_loader == SERIAL_BIN)
-        {
-            ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
-            bin_address++;
-            // 32k = 0x8000
-            if (bin_address > 0x8000)
-            {
-                serial_loader = SERIAL_READY;
-                bin_address = 0;
-                rom_reset_vector_write(0x03, 0x08);
-                reset = true;
-            }
-        }
-        if(serial_loader == SERIAL_DISK)
-        {
-            disk_file_data_set(disk_address, serial_byte);
-            disk_address++;
-            if (disk_address > 143360)
-            {
-                serial_loader = SERIAL_READY;
-                disk_address = 0;
-                main_init();
-                disk_init();
-                rom_reset_vector_write(0x62, 0xFA);
-                reset = true;
-            }
-        }
-        if(serial_loader == SERIAL_READY)
-        {
-            if(serial_byte == SERIAL_USER)
-            {
-                serial_loader = SERIAL_USER;
-                user_state = SERIAL_USER_KEYBOARD;
-            }
-            if(serial_byte == SERIAL_BIN)
-            {
-                serial_loader = SERIAL_BIN;
-                bin_address = 0;
-            }
-            if(serial_byte == SERIAL_DISK)
-            {
-                serial_loader = SERIAL_DISK;
-                disk_address = 0;
-            }
-        }
-    }
+main_null(unused);
+keyboard_key_code_set(serial_byte);
+joystick_btn0_set(button_0);
+joystick_btn0_set(button_1);
+joystick_pdl0_set(joystick_x);
+joystick_pdl1_set(joystick_y);
+ram_address_low_set(low);
+ram_address_high_set(high);
+ram_write_increment(byte);
+rom_reset_vector_low_set(low);
+rom_reset_vector_high_set(high);
+disk_file_data_location_reset(unused);
+disk_file_data_set(serial_byte);
+main_start_bin(unused);
+main_reset(unused);
+main_pause(on_off);
+main_start_disk(unused);
 
 #endif
-
-}

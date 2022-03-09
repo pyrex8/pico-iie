@@ -109,3 +109,45 @@ void joystick_state_set(uint8_t btn0, uint8_t btn1, uint8_t pdl0, uint8_t pdl1)
         paddle1 = pdl1;
     }
 }
+
+void joystick_btn0_set(uint8_t btn0)
+{
+    if(btn0)
+    {
+        button0 = JOYSTICK_DATA_PIN_HIGH;
+    }
+    else
+    {
+        button0 = JOYSTICK_DATA_PIN_LOW;
+    }
+}
+
+void joystick_btn1_set(uint8_t btn1)
+{
+    if(btn1)
+    {
+        button1 = JOYSTICK_DATA_PIN_HIGH;
+    }
+    else
+    {
+        button1 = JOYSTICK_DATA_PIN_LOW;
+    }
+}
+
+void joystick_pdl0_set(uint8_t pdl0)
+{
+    // Only update if timer is not running
+    if (timer_count >= JOYSTICK_TIMER_COUNT_MAX)
+    {
+        paddle0 = pdl0;
+    }
+}
+
+void joystick_pdl1_set(uint8_t pdl1)
+{
+    // Only update if timer is not running
+    if (timer_count >= JOYSTICK_TIMER_COUNT_MAX)
+    {
+        paddle1 = pdl1;
+    }
+}
