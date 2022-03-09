@@ -147,12 +147,10 @@ if bin_name != "":
     print('Binary:', bin_name)
 
 joystick_present = 0
-joystick_x = 0
-joystick_y = 0
 button_0 = 0
 button_1 = 0
-joystick_byte_0 = 0
-joystick_byte_1 = 0
+paddle_0 = 0
+paddle_1 = 0
 
 pygame.init()
 pygame.display.set_caption('pyrex8')
@@ -171,19 +169,19 @@ running = True
 while running:
 
     if joystick_present:
-        joystick_x = int((joystick.get_axis(0) + 1) * 127)
-        joystick_y = int((joystick.get_axis(1) + 1) * 127)
         button_0 = int(joystick.get_button(0))
         button_1 = int(joystick.get_button(1))
-        joystick_byte_0 = (joystick_x & 0xFE) + (button_0 & 0x01)
-        joystick_byte_1 = (joystick_y & 0xFE) + (button_1 & 0x01)
+        paddle_0 = int((joystick.get_axis(0) + 1) * 127)
+        paddle_1 = int((joystick.get_axis(1) + 1) * 127)
     else:
         if pygame.joystick.get_count() > 0:
             joystick = pygame.joystick.Joystick(0)
             joystick.init()
             joystick_present = 1
-        joystick_byte_0 = 128
-        joystick_byte_1 = 128
+        button_0 = 0
+        button_1 = 0
+        paddle_0 = 128
+        paddle_1 = 128
 
     keycode = 0
 
@@ -232,8 +230,10 @@ while running:
     packet = bytearray()
     packet.append(0x81)
     packet.append(keycode)
-    packet.append(joystick_byte_0)
-    packet.append(joystick_byte_1)
+    packet.append(button_0)
+    packet.append(button_1)
+    packet.append(paddle_0)
+    packet.append(paddle_1)
     ser.write(packet)
 
     pygame.draw.rect(screen, BLACK, (0, 0, SCREEN_X_TOTAL, SCREEN_Y_TOTAL))

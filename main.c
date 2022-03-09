@@ -47,11 +47,6 @@ static UserState user_state = SERIAL_USER_KEYBOARD;
 static uint16_t bin_address = 0;
 static uint32_t disk_address = 0;
 
-static uint8_t joystick_x = 0;
-static uint8_t joystick_y = 0;
-static uint8_t button_0 = 0;
-static uint8_t button_1 = 0;
-
 static bool reset = false;
 static uint8_t running = 1;
 
@@ -114,7 +109,7 @@ void uart_data(void)
 
         if(serial_loader == SERIAL_USER)
         {
-            // 3 bytes keyboard, joystick_x + button_0, joystick_y + button_1
+            // 5 bytes keyboard, button_0, button_1, paddle_0, paddle_1
             if (user_state == SERIAL_USER_KEYBOARD)
             {
                 if (serial_byte > 0 && serial_byte < 128)
@@ -131,20 +126,24 @@ void uart_data(void)
                 }
                 user_state++;
             }
+            else if (user_state == SERIAL_USER_BTN_0)
+            {
+                joystick_btn0_set(serial_byte);
+                user_state++;
+            }
+            else if (user_state == SERIAL_USER_BTN_1)
+            {
+                joystick_btn1_set(serial_byte);
+                user_state++;
+            }
             else if (user_state == SERIAL_USER_JOY_X)
             {
-                joystick_x = serial_byte & 0xFE;
-                joystick_pdl0_set(joystick_x);
-                button_0 = serial_byte & 0x01;
-                joystick_btn0_set(button_0);
+                joystick_pdl0_set(serial_byte);
                 user_state++;
             }
             else
             {
-                joystick_y = serial_byte & 0xFE;
-                joystick_pdl1_set(joystick_y);
-                button_1 = serial_byte & 0x01;
-                joystick_btn1_set(button_1);
+                joystick_pdl1_set(serial_byte);
                 user_state = SERIAL_USER_KEYBOARD;
                 serial_loader = SERIAL_READY;
             }

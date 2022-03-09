@@ -19,6 +19,8 @@ typedef enum
 typedef enum
 {
     SERIAL_USER_KEYBOARD = 0,
+    SERIAL_USER_BTN_0,
+    SERIAL_USER_BTN_1,
     SERIAL_USER_JOY_X,
     SERIAL_USER_JOY_Y,
 } UserState;
