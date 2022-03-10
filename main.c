@@ -116,19 +116,6 @@ void main_start_disk(uint8_t unused)
 
 void uart_data(void)
 {
-// serial data
-// 1. new keyboard code: 1 byte
-// 2. reset
-// 3. joystick data: 2 bytes
-// 4. bin ram data: byte, location
-// 5. disk data: byte, location
-
-// mode
-// index
-// byte
-
-
-
     uint8_t serial_byte = 0;
 
     if(uart_is_readable(UART_ID))
@@ -156,28 +143,27 @@ void uart_data(void)
             }
             else if (user_state == SERIAL_USER_BTN_0)
             {
-                joystick_btn0_set(serial_byte);
                 user_state++;
+                joystick_btn0_set(serial_byte);
             }
             else if (user_state == SERIAL_USER_BTN_1)
             {
-                joystick_btn1_set(serial_byte);
                 user_state++;
+                joystick_btn1_set(serial_byte);
             }
             else if (user_state == SERIAL_USER_JOY_X)
             {
-                joystick_pdl0_set(serial_byte);
                 user_state++;
+                joystick_pdl0_set(serial_byte);
             }
             else
             {
-                joystick_pdl1_set(serial_byte);
                 user_state = SERIAL_USER_KEYBOARD;
                 serial_loader = SERIAL_READY;
+                joystick_pdl1_set(serial_byte);
             }
         }
-
-        if(serial_loader == SERIAL_BIN)
+        else if(serial_loader == SERIAL_BIN)
         {
             // 32k = 0x8000
             if (bin_address >= 0x8000)
@@ -188,11 +174,11 @@ void uart_data(void)
             }
             else
             {
-                ram_update(MEMORY_WRITE, (bin_address + 0x803), &serial_byte);
                 bin_address++;
+                ram_update(MEMORY_WRITE, (bin_address + 0x803 - 1), &serial_byte);
             }
         }
-        if(serial_loader == SERIAL_DISK)
+        else if(serial_loader == SERIAL_DISK)
         {
             if (disk_address > 143360)
             {
@@ -202,31 +188,38 @@ void uart_data(void)
             }
             else
             {
-                disk_file_data_set(disk_address, serial_byte);
                 disk_address++;
+                disk_file_data_set(disk_address - 1, serial_byte);
             }
         }
-        if(serial_loader == SERIAL_READY)
+        else if(serial_loader == SERIAL_READY)
         {
             if(serial_byte == SERIAL_USER)
             {
                 serial_loader = SERIAL_USER;
                 user_state = SERIAL_USER_KEYBOARD;
+                main_null(0);
             }
             else if(serial_byte == SERIAL_BIN)
             {
                 serial_loader = SERIAL_BIN;
                 bin_address = 0;
+                main_null(0);
             }
             else if(serial_byte == SERIAL_DISK)
             {
                 serial_loader = SERIAL_DISK;
                 disk_address = 0;
+                main_null(0);
             }
             else
             {
                 main_null(0);
             }
+        }
+        else
+        {
+            main_null(0);
         }
     }
 }
