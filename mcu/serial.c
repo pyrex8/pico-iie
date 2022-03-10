@@ -43,12 +43,12 @@ void serial_data(void)
 
 #if 0
 
-main_null(unused);
-keyboard_key_code_set(serial_byte);
-joystick_btn0_set(button_0);
-joystick_btn0_set(button_1);
-joystick_pdl0_set(joystick_x);
-joystick_pdl1_set(joystick_y);
+// main_null(unused);
+// keyboard_key_code_set(serial_byte);
+// joystick_btn0_set(button_0);
+// joystick_btn0_set(button_1);
+// joystick_pdl0_set(joystick_x);
+// joystick_pdl1_set(joystick_y);
 ram_address_low_set(low);
 ram_address_high_set(high);
 ram_write_increment(byte);
@@ -57,8 +57,8 @@ rom_reset_vector_high_set(high);
 disk_file_data_location_reset(unused);
 disk_file_data_set(serial_byte);
 main_start_bin(unused);
-main_reset(unused);
-main_pause(on_off);
+// main_reset(unused);
+// main_pause(unused);
 main_start_disk(unused);
 
 #endif

@@ -77,11 +77,6 @@ static void scan_line_ram_read(void)
     }
 }
 
-void main_reset(uint8_t unused)
-{
-    reset = true;
-}
-
 void main_init(void)
 {
     rom_init();
@@ -89,6 +84,34 @@ void main_init(void)
     video_init();
     c6502_init();
     speaker_init();
+}
+
+void main_null(uint8_t unused)
+{
+}
+
+void main_reset(uint8_t unused)
+{
+    reset = true;
+}
+
+void main_pause(uint8_t unused)
+{
+    running ^= 1;
+}
+
+void main_start_bin(uint8_t unused)
+{
+    rom_reset_vector_write(0x03, 0x08);
+    main_reset(0);
+}
+
+void main_start_disk(uint8_t unused)
+{
+    main_init();
+    disk_init();
+    rom_reset_vector_write(0x62, 0xFA);
+    main_reset(0);
 }
 
 void uart_data(void)
@@ -123,11 +146,11 @@ void uart_data(void)
                 }
                 else if (serial_byte == 128)
                 {
-                    main_reset(serial_byte);
+                    main_reset(0);
                 }
                 else if (serial_byte == 129)
                 {
-                    running ^= 1;
+                    main_pause(0);
                 }
                 user_state++;
             }
@@ -161,8 +184,7 @@ void uart_data(void)
             {
                 serial_loader = SERIAL_READY;
                 bin_address = 0;
-                rom_reset_vector_write(0x03, 0x08);
-                main_reset(serial_byte);
+                main_start_bin(0);
             }
             else
             {
@@ -172,16 +194,16 @@ void uart_data(void)
         }
         if(serial_loader == SERIAL_DISK)
         {
-            disk_file_data_set(disk_address, serial_byte);
-            disk_address++;
             if (disk_address > 143360)
             {
                 serial_loader = SERIAL_READY;
                 disk_address = 0;
-                main_init();
-                disk_init();
-                rom_reset_vector_write(0x62, 0xFA);
-                main_reset(serial_byte);
+                main_start_disk(0);
+            }
+            else
+            {
+                disk_file_data_set(disk_address, serial_byte);
+                disk_address++;
             }
         }
         if(serial_loader == SERIAL_READY)
@@ -191,15 +213,19 @@ void uart_data(void)
                 serial_loader = SERIAL_USER;
                 user_state = SERIAL_USER_KEYBOARD;
             }
-            if(serial_byte == SERIAL_BIN)
+            else if(serial_byte == SERIAL_BIN)
             {
                 serial_loader = SERIAL_BIN;
                 bin_address = 0;
             }
-            if(serial_byte == SERIAL_DISK)
+            else if(serial_byte == SERIAL_DISK)
             {
                 serial_loader = SERIAL_DISK;
                 disk_address = 0;
+            }
+            else
+            {
+                main_null(0);
             }
         }
     }
