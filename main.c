@@ -36,10 +36,9 @@ uint16_t scan_line;
 int16_t overscan_line;
 uint8_t overscan_line_odd;
 
-static SerialMode serial_loader = SERIAL_READY;
-static UserState user_state = SERIAL_USER_KEYBOARD;
-static uint16_t bin_address = 0;
-static uint32_t disk_address = 0;
+SerialOperation serial_operation;
+uint8_t serial_data;
+void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data);
 
 static bool reset = false;
 static uint8_t running = 1;
@@ -108,116 +107,6 @@ void main_start_disk(uint8_t unused)
     main_reset(0);
 }
 
-void uart_data(void)
-{
-    uint8_t serial_byte = 0;
-
-    if(uart_is_readable(UART_ID))
-    {
-        serial_byte = uart_getc(UART_ID);
-
-        if(serial_loader == SERIAL_USER)
-        {
-            // 5 bytes keyboard, button_0, button_1, paddle_0, paddle_1
-            if (user_state == SERIAL_USER_KEYBOARD)
-            {
-                if (serial_byte > 0 && serial_byte < 128)
-                {
-                    keyboard_key_code_set(serial_byte);
-                }
-                else if (serial_byte == 128)
-                {
-                    main_reset(0);
-                }
-                else if (serial_byte == 129)
-                {
-                    main_pause(0);
-                }
-                user_state++;
-            }
-            else if (user_state == SERIAL_USER_BTN_0)
-            {
-                user_state++;
-                joystick_btn0_set(serial_byte);
-            }
-            else if (user_state == SERIAL_USER_BTN_1)
-            {
-                user_state++;
-                joystick_btn1_set(serial_byte);
-            }
-            else if (user_state == SERIAL_USER_JOY_X)
-            {
-                user_state++;
-                joystick_pdl0_set(serial_byte);
-            }
-            else
-            {
-                user_state = SERIAL_USER_KEYBOARD;
-                serial_loader = SERIAL_READY;
-                joystick_pdl1_set(serial_byte);
-            }
-        }
-        else if(serial_loader == SERIAL_BIN)
-        {
-            // 32k = 0x8000
-            if (bin_address >= 0x8000)
-            {
-                serial_loader = SERIAL_READY;
-                bin_address = 0;
-                main_start_bin(0);
-            }
-            else
-            {
-                bin_address++;
-                ram_bin_data_set(serial_byte);
-            }
-        }
-        else if(serial_loader == SERIAL_DISK)
-        {
-            if (disk_address > 143360)
-            {
-                serial_loader = SERIAL_READY;
-                disk_address = 0;
-                main_start_disk(0);
-            }
-            else
-            {
-                disk_address++;
-                disk_file_data_set(serial_byte);
-            }
-        }
-        else if(serial_loader == SERIAL_READY)
-        {
-            if(serial_byte == SERIAL_USER)
-            {
-                serial_loader = SERIAL_USER;
-                user_state = SERIAL_USER_KEYBOARD;
-                main_null(0);
-            }
-            else if(serial_byte == SERIAL_BIN)
-            {
-                serial_loader = SERIAL_BIN;
-                bin_address = 0;
-                ram_bin_reset(0);
-            }
-            else if(serial_byte == SERIAL_DISK)
-            {
-                serial_loader = SERIAL_DISK;
-                disk_address = 0;
-                disk_file_reset(0);
-            }
-            else
-            {
-                main_null(0);
-            }
-        }
-        else
-        {
-            main_null(0);
-        }
-    }
-}
-
 void main_core1(void)
 {
     while (1)
@@ -254,6 +143,21 @@ int main(void)
     test1_pin_init();
     serial_init();
 
+    main_serial_operation[SERIAL_MAIN_NULL] = main_null;
+    main_serial_operation[SERIAL_MAIN_RESET] = main_reset;
+    main_serial_operation[SERIAL_MAIN_PAUSE] = main_pause;
+    main_serial_operation[SERIAL_MAIN_START_BIN] = main_start_bin;
+    main_serial_operation[SERIAL_MAIN_START_DISK] = main_start_disk;
+    main_serial_operation[SERIAL_KEYBOARD_CODE] = keyboard_key_code_set;
+    main_serial_operation[SERIAL_JOYSTICK_BTN0] = joystick_btn0_set;
+    main_serial_operation[SERIAL_JOYSTICK_BTN1] = joystick_btn1_set;
+    main_serial_operation[SERIAL_JOYSTICK_PDL0] = joystick_pdl0_set;
+    main_serial_operation[SERIAL_JOYSTICK_PDL1] = joystick_pdl1_set;
+    main_serial_operation[SERIAL_RAM_BIN_RESET] = ram_bin_reset;
+    main_serial_operation[SERIAL_RAM_BIN_DATA] = ram_bin_data_set;
+    main_serial_operation[SERIAL_DISK_RESET] = disk_file_reset;
+    main_serial_operation[SERIAL_DISK_DATA] = disk_file_data_set;
+
     main_init();
 
     multicore_launch_core1(main_core1);
@@ -280,9 +184,12 @@ int main(void)
         }
 
         vga_blank_scan_line_set();
-        uart_data();
+
+        serial_update(&serial_operation, &serial_data);
+        (*main_serial_operation[serial_operation]) (serial_data);
+
         led_red_set(disk_is_spinning());
-        led_green_set(serial_loader != SERIAL_READY);
+        led_green_set(serial_data != 0);
 
         test0_pin_low();
     }
