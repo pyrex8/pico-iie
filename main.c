@@ -28,12 +28,6 @@
 #include "common/video.h"
 #include "common/disk.h"
 
-typedef enum
-{
-    MEMORY_WRITE = 0,
-    MEMORY_READ
-} MemoryRWStatus;
-
 static C6502_interface interface_c;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_data_address = 0x2000;
@@ -175,7 +169,7 @@ void uart_data(void)
             else
             {
                 bin_address++;
-                ram_update(MEMORY_WRITE, (bin_address + 0x803 - 1), &serial_byte);
+                ram_bin_data_set(serial_byte);
             }
         }
         else if(serial_loader == SERIAL_DISK)
@@ -189,7 +183,7 @@ void uart_data(void)
             else
             {
                 disk_address++;
-                disk_file_data_set(disk_address - 1, serial_byte);
+                disk_file_data_set(serial_byte);
             }
         }
         else if(serial_loader == SERIAL_READY)
@@ -204,13 +198,13 @@ void uart_data(void)
             {
                 serial_loader = SERIAL_BIN;
                 bin_address = 0;
-                main_null(0);
+                ram_bin_reset(0);
             }
             else if(serial_byte == SERIAL_DISK)
             {
                 serial_loader = SERIAL_DISK;
                 disk_address = 0;
-                main_null(0);
+                disk_file_reset(0);
             }
             else
             {

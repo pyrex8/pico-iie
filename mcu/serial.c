@@ -54,7 +54,11 @@ ram_address_high_set(high);
 ram_write_increment(byte);
 rom_reset_vector_low_set(low);
 rom_reset_vector_high_set(high);
-disk_file_data_location_reset(unused);
+
+ram_bin_reset(unused);
+ram_bin_data_set(serial_byte);
+
+// disk_file_reset(unused);
 // disk_file_data_set(serial_byte);
 // main_start_bin(unused);
 // main_reset(unused);

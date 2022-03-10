@@ -73,6 +73,7 @@ static uint8_t disk_write = 0;
 static uint32_t sector_start_location = 0;
 static uint32_t offset = 0;
 static uint32_t value = 0;
+static uint32_t location = 0;
 
 // 2 and 6 write translate table
 uint8_t diskbyte[] =
@@ -462,7 +463,13 @@ uint8_t disk_write_mode_set(uint8_t command)
     return MemReturnRandomData(1);
 }
 
-void disk_file_data_set(uint32_t location, uint8_t data)
+void disk_file_reset(uint8_t unused)
+{
+    location = 0;
+}
+
+void disk_file_data_set(uint8_t data)
 {
   disk_data[location] = data;
+  location++;
 }
