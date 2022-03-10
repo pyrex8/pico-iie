@@ -77,6 +77,11 @@ static void scan_line_ram_read(void)
     }
 }
 
+void main_reset(uint8_t unused)
+{
+    reset = true;
+}
+
 void main_init(void)
 {
     rom_init();
@@ -118,7 +123,7 @@ void uart_data(void)
                 }
                 else if (serial_byte == 128)
                 {
-                    reset = true;
+                    main_reset(serial_byte);
                 }
                 else if (serial_byte == 129)
                 {
@@ -157,7 +162,7 @@ void uart_data(void)
                 serial_loader = SERIAL_READY;
                 bin_address = 0;
                 rom_reset_vector_write(0x03, 0x08);
-                reset = true;
+                main_reset(serial_byte);
             }
             else
             {
@@ -176,7 +181,7 @@ void uart_data(void)
                 main_init();
                 disk_init();
                 rom_reset_vector_write(0x62, 0xFA);
-                reset = true;
+                main_reset(serial_byte);
             }
         }
         if(serial_loader == SERIAL_READY)
