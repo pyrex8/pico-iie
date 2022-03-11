@@ -32,15 +32,16 @@
 
 static C6502_interface interface_c;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
-static uint16_t video_data_address = 0x2000;
+static uint16_t video_address = 0x2000;
+static bool reset = false;
+static uint8_t running = 1;
+static uint16_t scan_line;
+static int16_t overscan_line;
+static uint8_t overscan_line_odd;
 
-uint16_t scan_line;
-int16_t overscan_line;
-uint8_t overscan_line_odd;
-
-SerialOperation serial_operation;
-uint8_t serial_data;
-void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
+static SerialOperation serial_operation;
+static uint8_t serial_data;
+static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
 {
     [SERIAL_MAIN_NULL]              = main_null,
     [SERIAL_MAIN_RESET]             = main_reset,
@@ -57,36 +58,6 @@ void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
     [SERIAL_DISK_RESET]             = disk_file_reset,
     [SERIAL_DISK_DATA]              = disk_file_data_set,
 };
-
-static bool reset = false;
-static uint8_t running = 1;
-
-static void scan_line_ram_read(void)
-{
-    video_buffer_clear();
-
-    if (video_is_mode_text())
-    {
-        video_data_address = 0x400 +
-                            (0x400 * video_page_get()) +
-                            (((scan_line>>3) & 0x07) * SCREEN_LINE_OFFSET) +
-                            ((scan_line>>6) * VIDEO_SEGMENT_OFFSET);
-
-        ram_data_get(VIDEO_BYTES_PER_LINE, video_data_address, video_line_data);
-        video_text_line_update(scan_line, video_line_data);
-    }
-    else
-    {
-        video_data_address = 0x2000 +
-                             (0x2000 * video_page_get()) +
-                             (scan_line & 7) * 0x400 +
-                             ((scan_line>>3) & 7) * 0x80 +
-                             (scan_line>>6) * 0x28;
-        ram_data_get(VIDEO_BYTES_PER_LINE, video_data_address, video_line_data);
-
-        video_hires_line_update(scan_line, video_line_data);
-    }
-}
 
 void main_init(void)
 {
@@ -183,7 +154,10 @@ int main(void)
         }
         else
         {
-            scan_line_ram_read();
+            video_buffer_clear();
+            video_address = video_address_get();
+            ram_data_get(VIDEO_BYTES_PER_LINE, video_address, video_line_data);
+            video_line_data_get(video_line_data);
         }
 
         vga_blank_scan_line_set();

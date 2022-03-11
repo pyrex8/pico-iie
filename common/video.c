@@ -226,12 +226,33 @@ void video_buffer_get(uint16_t *buffer)
     memcpy(buffer, video_buffer, VIDEO_BUFFER_SIZE * 2);
 }
 
-bool video_is_mode_text(void)
+uint16_t video_address_get(void)
 {
-    return video_mode == VIDEO_TEXT_MODE;
+    uint16_t address;
+    if (video_mode == VIDEO_TEXT_MODE)
+    {
+        address = 0x400 + (0x400 * video_page) +
+            (((video_scan_line>>3) & 0x07) * SCREEN_LINE_OFFSET) +
+            ((video_scan_line>>6) * VIDEO_SEGMENT_OFFSET);
+    }
+    else
+    {
+        address = 0x2000 + (0x2000 * video_page) +
+            (video_scan_line & 7) * 0x400 +
+            ((video_scan_line>>3) & 7) * 0x80 +
+            (video_scan_line>>6) * 0x28;
+    }
+    return address;
 }
 
-uint16_t video_page_get(void)
+void video_line_data_get(uint8_t *video_line_data)
 {
-    return video_page;
+    if (video_mode == VIDEO_TEXT_MODE)
+    {
+        video_text_line_update(video_scan_line, video_line_data);
+    }
+    else
+    {
+        video_hires_line_update(video_scan_line, video_line_data);
+    }
 }
