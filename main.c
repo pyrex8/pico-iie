@@ -11,6 +11,8 @@
 #include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 
+#include "main.h"
+
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
@@ -38,7 +40,23 @@ uint8_t overscan_line_odd;
 
 SerialOperation serial_operation;
 uint8_t serial_data;
-void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data);
+void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
+{
+    [SERIAL_MAIN_NULL]              = main_null,
+    [SERIAL_MAIN_RESET]             = main_reset,
+    [SERIAL_MAIN_PAUSE]             = main_pause,
+    [SERIAL_MAIN_START_BIN]         = main_start_bin,
+    [SERIAL_MAIN_START_DISK]        = main_start_disk,
+    [SERIAL_KEYBOARD_CODE]          = keyboard_key_code_set,
+    [SERIAL_JOYSTICK_BTN0]          = joystick_btn0_set,
+    [SERIAL_JOYSTICK_BTN1]          = joystick_btn1_set,
+    [SERIAL_JOYSTICK_PDL0]          = joystick_pdl0_set,
+    [SERIAL_JOYSTICK_PDL1]          = joystick_pdl1_set,
+    [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
+    [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
+    [SERIAL_DISK_RESET]             = disk_file_reset,
+    [SERIAL_DISK_DATA]              = disk_file_data_set,
+};
 
 static bool reset = false;
 static uint8_t running = 1;
@@ -142,21 +160,6 @@ int main(void)
     test0_pin_init();
     test1_pin_init();
     serial_init();
-
-    main_serial_operation[SERIAL_MAIN_NULL] = main_null;
-    main_serial_operation[SERIAL_MAIN_RESET] = main_reset;
-    main_serial_operation[SERIAL_MAIN_PAUSE] = main_pause;
-    main_serial_operation[SERIAL_MAIN_START_BIN] = main_start_bin;
-    main_serial_operation[SERIAL_MAIN_START_DISK] = main_start_disk;
-    main_serial_operation[SERIAL_KEYBOARD_CODE] = keyboard_key_code_set;
-    main_serial_operation[SERIAL_JOYSTICK_BTN0] = joystick_btn0_set;
-    main_serial_operation[SERIAL_JOYSTICK_BTN1] = joystick_btn1_set;
-    main_serial_operation[SERIAL_JOYSTICK_PDL0] = joystick_pdl0_set;
-    main_serial_operation[SERIAL_JOYSTICK_PDL1] = joystick_pdl1_set;
-    main_serial_operation[SERIAL_RAM_BIN_RESET] = ram_bin_reset;
-    main_serial_operation[SERIAL_RAM_BIN_DATA] = ram_bin_data_set;
-    main_serial_operation[SERIAL_DISK_RESET] = disk_file_reset;
-    main_serial_operation[SERIAL_DISK_DATA] = disk_file_data_set;
 
     main_init();
 
