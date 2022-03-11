@@ -85,7 +85,6 @@ int pclk_slice;
 uint pclk_channel;
 
 static uint16_t scan_line_buffer[VIDEO_SCAN_LINE_LEN] = {0};
-static uint16_t scan_line_blank[VIDEO_SCAN_LINE_LEN] = {0};
 static uint16_t *p_scan_line_buffer;
 volatile bool scan_line_old = true;
 
@@ -196,14 +195,6 @@ int16_t vga_overscan_line_get(void)
 uint16_t *vga_scan_line_buffer(void)
 {
     return &scan_line_buffer[VIDEO_SCAN_BUFFER_OFFSET];
-}
-
-void vga_blank_scan_line_set(void)
-{
-    if (scan_line >= VIDEO_RESOLUTION_Y)
-    {
-        memcpy(scan_line_buffer, scan_line_blank, VIDEO_SCAN_BUFFER_LEN);
-    }
 }
 
 bool vga_overscan_line_is_odd(void)

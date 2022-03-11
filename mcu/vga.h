@@ -7,7 +7,6 @@
 void vga_init(void);
 int16_t vga_overscan_line_get(void);
 uint16_t *vga_scan_line_buffer(void);
-void vga_blank_scan_line_set(void);
 bool vga_overscan_line_is_odd(void);
 uint16_t vga_scan_line_get(void);
 void vga_wait_for_new_overscan_line(void);

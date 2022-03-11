@@ -160,8 +160,6 @@ int main(void)
             video_line_data_get(video_line_data);
         }
 
-        vga_blank_scan_line_set();
-
         serial_update(&serial_operation, &serial_data);
         (*main_serial_operation[serial_operation]) (serial_data);
 
