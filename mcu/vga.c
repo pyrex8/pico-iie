@@ -111,8 +111,6 @@ void __attribute__((noinline, long_call, section(".time_critical"))) vga_scan_li
 
 void vga_init(void)
 {
-//    bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_DMA_R_BITS;
-
     p_scan_line_buffer = scan_line_buffer;
 
     pio = pio0;
