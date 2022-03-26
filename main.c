@@ -119,6 +119,7 @@ void main_core1(void)
             joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
+            test_pin_update(interface_c.rw, interface_c.address, &interface_c.data);
         }
     }
 }
@@ -142,8 +143,6 @@ int main(void)
     {
         vga_wait_for_new_overscan_line();
 
-        test0_pin_high();
-
         scan_line = vga_scan_line_get();
         video_scan_line_set(scan_line);
         overscan_line_odd = vga_overscan_line_is_odd();
@@ -165,7 +164,5 @@ int main(void)
 
         led_red_set(disk_is_spinning());
         led_green_set(serial_data != 0);
-
-        test0_pin_low();
     }
 }

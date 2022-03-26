@@ -3,6 +3,7 @@
 
 const uint TEST0_PIN = TEST0_PIN_NUMBER;
 const uint TEST1_PIN = TEST1_PIN_NUMBER;
+const uint TEST_PIN = TEST_PIN_NUMBER;
 
 void test0_pin_init(void)
 {
@@ -34,4 +35,12 @@ void test1_pin_low(void)
 void test1_pin_high(void)
 {
     gpio_put(TEST1_PIN, 1);
+}
+
+void test_pin_update(uint8_t read, uint16_t address, uint8_t *byte)
+{
+    if (address == TEST_PIN_ADDR)
+    {
+        gpio_put(TEST_PIN, (*byte & 0x01));
+    }
 }
