@@ -104,6 +104,7 @@ void main_core1(void)
         {
             reset = false;
             c6502_reset(&interface_c);
+            test_pin_init();
         }
 
         if (running)
@@ -131,6 +132,7 @@ int main(void)
     led_green_init();
     test0_pin_init();
     test1_pin_init();
+    test_pin_init();
     serial_init();
 
     main_init();
