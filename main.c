@@ -13,6 +13,7 @@
 
 #include "main.h"
 
+#include "mcu/cassette.h"
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
@@ -104,7 +105,6 @@ void main_core1(void)
         {
             reset = false;
             c6502_reset(&interface_c);
-            test_pin_init();
         }
 
         if (running)
@@ -120,7 +120,7 @@ void main_core1(void)
             joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
-            test_pin_update(interface_c.rw, interface_c.address, &interface_c.data);
+            cassette_update(interface_c.rw, interface_c.address, &interface_c.data);
         }
     }
 }
@@ -132,8 +132,8 @@ int main(void)
     led_green_init();
     test0_pin_init();
     test1_pin_init();
-    test_pin_init();
     serial_init();
+    cassette_init();
 
     main_init();
 
@@ -144,6 +144,8 @@ int main(void)
     while (1)
     {
         vga_wait_for_new_overscan_line();
+
+        test0_pin_high();
 
         scan_line = vga_scan_line_get();
         video_scan_line_set(scan_line);
@@ -166,5 +168,7 @@ int main(void)
 
         led_red_set(disk_is_spinning());
         led_green_set(serial_data != 0);
+
+        test0_pin_low();
     }
 }

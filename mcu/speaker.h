@@ -4,8 +4,7 @@
 #include <stdint.h>
 
 // Configuration
-#define SPEAKER0_PIN_NUMBER 27
-#define SPEAKER1_PIN_NUMBER 28
+#define SPEAKER_PIN_NUMBER 28
 
 void speaker_init(void);
 
