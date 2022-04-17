@@ -79,18 +79,6 @@ void video_init(void)
 
 void video_update(uint8_t read, uint16_t address, uint8_t *byte)
 {
-    if (address == 0xC019)
-    {
-        if (video_scan_line < VIDEO_RESOLUTION_Y)
-        {
-            *byte = 0x80;
-        }
-        else
-        {
-            *byte = 0;
-        }
-    }
-
     if (address == 0xC054)
     {
         video_page = VIDEO_PAGE_1;
