@@ -63,6 +63,13 @@ The pico-iie requires 3 cables:
 
 ![Alt text](images/pico-iie_setup.drawio.png?raw=true "setup")
 
+### Pico VGA Demo Board Modifications
+
+The pico VGA Demo board requires 3 cut traces, 5 jumpers, and removal of some components
+
+![Alt text](images/pi_pico_vga_demo_board.png?raw=true "modifications")
+
+
 Running ```main.py``` send keybard and game controller inputs down to the pico-iie from your PC.
 
 ### Pi Pico Pinout Block Diagram
@@ -118,3 +125,9 @@ No blinking text, just NORMAL and INVERSE. FLASH displays as inverse and some od
 Most of the soft switch read "side affect" are not emulated.
 
 Vertical blanking register is not updated. This is due to it only being in the IIe so most games don't use it.
+
+### PCB (WIP)
+
+A dedicated PCB is in the works. The schematics is in Diptrace.
+
+![Alt text](images/pico-iie_schematics.png?raw=true "schematics")
