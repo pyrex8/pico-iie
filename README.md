@@ -4,9 +4,9 @@ Apple IIe emulator that runs on the Pi Pico.
 
 ### Project History
 
-This project started in 2020 from a lack of desk space, curiosity, and a bit of Nostalgia.
+This project started in 2020 from a lack of desk space, curiosity, and a bit of nostalgia.
 I wanted to play some games and possibly write some code on an Apple IIe.
-I don't have a large enough desk space to permanently set up an Apple computer and monitor plus I didn't want to go down the rabbit hole of looking at modern storage options.
+I don't have a large enough desk space to permanently set up an Apple II computer and monitor plus I didn't want to go down the rabbit hole of looking at modern storage options.
 
 My first thought was to run an emulator. I use Ubuntu as my primary home machine. It seemed that the most active project on github was LinApple (https://github.com/linappleii/linapple). I had some trouble compiling the project so I went looking for alternatives. I found some historical background on LinApple from the person who originally ported AppleWin over to Linux.
  (http://linapple.sourceforge.net/).  
@@ -29,24 +29,33 @@ This may sound like a tedious process, but it was super fun and gave me an excus
 
 The original LinApple code uses 6502 emulation that executes a complete instruction every call as opposed to a per cycle emulator that executes one clock cycle per execution. This is one of the main reasons the code had so much coupling between modules. A per instruction emulation requires accessing RAM, ROM, and peripherals from the actual instruction. I looked around for a per cycle emulator. I found this project https://github.com/floooh/chips. It was surprisingly easy to integrate into the project. This allowed decoupling of all the other modules from the 6502 emulation. The trade off is that per cycle emulation is slower than per instruction emulation.
 
-I ended up removing the SDL1 layer used in the project and used Pygame as the interface to the code just to test the C portion of the emulator. This simplified the C code but slowed down the project further. At this point the emulator code was cleaner but running slower than the original project. The other issue besides speed was that emulating sound I have not been able to update sound without glitching/ clicking between updates. I'm not sure if this is an inherent problem with Pygame or just my lack of understanding.
+I ended up removing the SDL1 layer used in the project and used Pygame as the interface to the code just to test the C portion of the emulator. This simplified the C code but slowed down the project further. At this point the emulator code was cleaner but running slower than the original project. The other issue was with emulating sound on Pygame. I have not been able to update sound without glitching/clicking between updates. I'm not sure if this is an inherent problem with Pygame or just my lack of understanding.
 
-I decide to try running the emulator on a microcontroller. After trying out a few processors I landed on using the Pi Pico that this project is based on.
+I decide to try running the emulator on a microcontroller. After trying out a few processors I landed on using the Pi Pico.
 
 The projects use both cores and is overclocked at 470MHz.
 
 #### Core 0
-- VGA
-- All video operations
-- UART keyboard, joystick, bin, and disk files
-- TEST0_PIN
+- VGA scan line updating
+- Getting video memeory from RAM
+- Converting video memory for the scan line to data needed to display
+- Serial UART operations:
+    - keyboard
+    - joystick
+    - bin files
+    - disk files
 
 #### Core 1
 - 6502
-- Speaker GPIO
-- TEST1_PIN
+- RAM
+- ROM
+- Disk
+- Keybaord
+- Speaker
+- Video
+- Cassette (just output as a debug pin for getting timing information from programs running on emulator)
 
- Even with the overclocking the emulator ats approximately 1.4 microseconds to complete an instruction. Even with slower emulation games are quite playable.
+Even with the overclocking the emulator takes approximately 1.4 microseconds to complete an instruction. Even with slower emulation games are quite playable.
 
 ### Hardware
 The emulator runs on a Pi Pico using a Pimoroni Pico VGA Demo Base (https://shop.pimoroni.com/products/pimoroni-pico-vga-demo-base?variant=32369520672851) with a few modifications.
@@ -114,20 +123,19 @@ F12 exits main.py program
 ESC key will pause program
 
 
-There are some simplifications to the emulator.
+There are some simplifications/limitations to the emulator.
 
-Only emulates a 48K RAM.
-
-TEXT and HIRES modes only
-
-No blinking text, just NORMAL and INVERSE. FLASH displays as inverse and some odd characters.
-
-Most of the soft switch read "side affect" are not emulated.
-
-Vertical blanking register is not updated. This is due to it only being in the IIe so most games don't use it.
+- Only emulates a 48K RAM.
+- TEXT and HIRES modes only, no LORES mode.
+- No blinking text, just NORMAL and INVERSE. FLASH displays as inverse and some odd characters.
+- Most of the soft switch read "side affect" are not emulated.
+- Vertical blanking register is not updated. This is due to it only being in the IIe so most games don't use it.
+- Communication on UART is very rudamentary:
+    - Only raw data is sent down with no error checking.
+    - Data is only on direction so disk data is not saved back to PC.
 
 ### PCB (WIP)
 
-A dedicated PCB is in the works. The schematics is in Diptrace.
+A dedicated PCB is in the works. The schematics is in Diptrace (https://diptrace.com/).
 
 ![Alt text](images/pico-iie_schematics.png?raw=true "schematics")
