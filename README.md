@@ -54,6 +54,17 @@ The emulator runs on a Pi Pico using a Pimoroni Pico VGA Demo Base (https://shop
 
 ![Alt text](images/pico-iie_board.jpg?raw=true "board")
 
+### Setup
+The pico-iie requires 3 cables:
+- USB to UART cable wit 3.3V signals.
+- A VGA cable
+- An audio cable
+
+
+![Alt text](images/pico-iie_setup.drawio.png?raw=true "setup")
+
+Running ```main.py``` send keybard and game controller inputs down to the pico-iie from your PC.
+
 ### Pi Pico Pinout Block Diagram
 
 From the block diagram it can be seen that the peripherals use are:
@@ -69,7 +80,7 @@ VGA is data is produced using PIO0 as a 16 bit parallel port controlled by a cir
 
 Once the board connected to a VGA monitor and an audio output device and is powered up either by the USB micro connector on the Pi Pico or the USB to UART cable the Apple IIe prompt and the familiar beep can be heard.
 
-![Alt text](images/pico-iie_bootup_screen.jpg?raw=true "Title")
+![Alt text](images/pico-iie_bootup_screen.jpg?raw=true "boot up screen")
 
 The disk is not automatically detected. By starting ```main.py``` communication starts between a Linux PC and the Pi Pico. If main.py is started with a .dsk file the emulator will automatically reboot with the dsk imag.
 
@@ -83,7 +94,7 @@ You can download the bin file directly to the pico-iie though the USB to serial 
 
 The green LED on the pi pico turn on solid green for a few seconds as it downloads then the game will start automatically
 
-![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "Title")
+![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "cosmic impalas")
 
 Example:
 ```python3 main.py Choplifter.dsk```
