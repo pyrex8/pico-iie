@@ -52,7 +52,7 @@ The projects use both cores and is overclocked at 470MHz.
 The emulator runs on a Pi Pico using a Pimoroni Pico VGA Demo Base (https://shop.pimoroni.com/products/pimoroni-pico-vga-demo-base?variant=32369520672851) with a few modifications.
 
 
-![Alt text](images/pico-iie_board1.jpg?raw=true "board")
+![Alt text](images/pico-iie_board.jpg?raw=true "board")
 
 ### Setup
 The pico-iie requires 3 cables:
