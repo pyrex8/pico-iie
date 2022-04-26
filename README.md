@@ -60,15 +60,13 @@ Even with the overclocking the emulator takes approximately 1.4 microseconds to 
 ### Hardware
 The emulator runs on a Pi Pico using a Pimoroni Pico VGA Demo Base (https://shop.pimoroni.com/products/pimoroni-pico-vga-demo-base?variant=32369520672851) with a few modifications.
 
-
 ![Alt text](images/pico-iie_board.jpg?raw=true "board")
 
 ### Setup
 The pico-iie requires 3 cables:
-- USB to UART cable wit 3.3V signals.
+- USB to UART cable with 3.3V signals.
 - A VGA cable
 - An audio cable
-
 
 ![Alt text](images/pico-iie_setup.drawio.png?raw=true "setup")
 
@@ -78,8 +76,9 @@ The pico VGA Demo board requires 3 cut traces, 5 jumpers, and removal of some co
 
 ![Alt text](images/pi_pico_vga_demo_board.png?raw=true "modifications")
 
+Running ```main.py``` brings up a black pygame window (shown below). As long as the pygame window is in focus on the desktop, keyboard and game controller inputs are sent down to the pico-iie from your PC to the pi pico through the USB to UART cable as serial data.
 
-Running ```main.py``` send keybard and game controller inputs down to the pico-iie from your PC.
+![Alt text](images/main_py_screenshot.png?raw=true "main.py window")
 
 ### Pi Pico Pinout Block Diagram
 
@@ -108,20 +107,20 @@ https://8bitworkshop.com/v3.9.0/?file=cosmic.c&platform=apple2
 You can download the bin file directly to the pico-iie though the USB to serial cable
 ```python3 main.py cosmic.bin```
 
-The green LED on the pi pico turn on solid green for a few seconds as it downloads then the game will start automatically
+The green LED on the pi pico turn on solid green for a few seconds as it downloads then the game will start automatically.
 
 ![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "cosmic impalas")
+
+The red LED indicates Disk operation.
 
 Example:
 ```python3 main.py Choplifter.dsk```
 
+After the file is downloaded and running the main.py can be used for keyboard input and/or game controller input through the serial cable. This eliminates the need for direct connection to peripherals to the Pi Pico.
 
-After the file is downloaded and running the main.py can be used for keyoard input and/or game controller input through the serial cable. This eliminates the need for direct connection to peripherals to the Pi Pico.
-
-F1 is used for breaking your program, the same as CRTL-C on the original machine.
-F12 exits main.py program
-ESC key will pause program
-
+- F1 is used for breaking your program, the same as CRTL-C on the original machine.
+- F2 key toggles pausing the emulator.
+- F12 exits main.py program.
 
 There are some simplifications/limitations to the emulator.
 
@@ -133,6 +132,7 @@ There are some simplifications/limitations to the emulator.
 - Communication on UART is very rudamentary:
     - Only raw data is sent down with no error checking.
     - Data is only on direction so disk data is not saved back to PC.
+    - bin files always load at 0x803. This is hard coded for now to be compatable with https://8bitworkshop.com Apple II generated bin files.
 
 ### PCB (WIP)
 
