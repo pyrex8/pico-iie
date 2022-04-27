@@ -76,9 +76,63 @@ The pico VGA Demo board requires 3 cut traces, 5 jumpers, and removal of some co
 
 ![Alt text](images/pi_pico_vga_demo_board.png?raw=true "modifications")
 
+### Perf Board
+
+The perf (perforated) board adds the red LED and the serial connector for the USB to UART cable. J1 of the perf board plugs into J7 on the Pico VGA Demo Board.
+
+![Alt text](images/perf_board.png?raw=true "perf_board")
+
+### Compiling and Downloading to Pi Pico
+
+There are good resources on the web for compiling and downloading C Pi Pico projects. The short version of this after git clone(ing) this project and setting up the tool chain navigate to the ```build``` folder. In build folder:
+
+```
+export PICO_SDK_PATH=../../pico-sdk
+cmake ..
+make
+```
+
+To program through the Pi Pico USB connector hold the BOOTSEL pin and press RUN. After the USB drive shows up in your file browser drag the ```pico-iie.uf2``` file onto the drive icon.
+
+At this point if everything is wired up correctly you should see the ```Apple //e``` text at the top of the VGA screen with the blinking prompt and the familiar beep can be heard. The pico-iie can be powered by the USB micro connector on the Pi Pico or the USB to UART cable 5V.
+
+![Alt text](images/pico-iie_bootup_screen.jpg?raw=true "boot up screen")
+
+### main.py
+
 Running ```main.py``` brings up a black pygame window (shown below). As long as the pygame window is in focus on the desktop, keyboard and game controller inputs are sent down to the pico-iie from your PC to the pi pico through the USB to UART cable as serial data.
 
 ![Alt text](images/main_py_screenshot.png?raw=true "main.py window")
+
+The disk is not automatically detected. By starting ```main.py``` communication starts between a Linux PC and the Pi Pico. If main.py is started with a .dsk file the emulator will automatically reboot with the dsk imag.
+
+main.py can load a ```bin``` or ```dsk``` file.
+
+If you use the menu command Download ROM image for Cosmic Impalas and save locally
+https://8bitworkshop.com/v3.9.0/?file=cosmic.c&platform=apple2
+
+You can download the bin file directly to the pico-iie though the USB to serial cable
+
+```
+python3 main.py cosmic.bin
+```
+
+The green LED on the pi pico turn on solid green for a few seconds as it downloads then the game will start automatically.
+
+![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "cosmic impalas")
+
+The red LED indicates Disk operation.
+
+Example:
+```
+python3 main.py Choplifter.dsk
+```
+
+After the file is downloaded and running the main.py can be used for keyboard input and/or game controller input through the serial cable. This eliminates the need for direct connection to peripherals to the Pi Pico.
+
+- F1 is used for breaking your program, the same as CRTL-C on the original machine.
+- F2 key toggles pausing the emulator.
+- F12 exits main.py program.
 
 ### Pi Pico Pinout Block Diagram
 
@@ -93,34 +147,7 @@ VGA is data is produced using PIO0 as a 16 bit parallel port controlled by a cir
 
 ![Alt text](images/pico-iie_block_diagram.drawio.png?raw=true "Pi Pico Block Diagram")
 
-Once the board connected to a VGA monitor and an audio output device and is powered up either by the USB micro connector on the Pi Pico or the USB to UART cable the Apple IIe prompt and the familiar beep can be heard.
-
-![Alt text](images/pico-iie_bootup_screen.jpg?raw=true "boot up screen")
-
-The disk is not automatically detected. By starting ```main.py``` communication starts between a Linux PC and the Pi Pico. If main.py is started with a .dsk file the emulator will automatically reboot with the dsk imag.
-
-main.py can load a ```bin``` or ```dsk``` file.
-
-If you use the menu command Download ROM image for Cosmic Impalas and save locally
-https://8bitworkshop.com/v3.9.0/?file=cosmic.c&platform=apple2
-
-You can download the bin file directly to the pico-iie though the USB to serial cable
-```python3 main.py cosmic.bin```
-
-The green LED on the pi pico turn on solid green for a few seconds as it downloads then the game will start automatically.
-
-![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "cosmic impalas")
-
-The red LED indicates Disk operation.
-
-Example:
-```python3 main.py Choplifter.dsk```
-
-After the file is downloaded and running the main.py can be used for keyboard input and/or game controller input through the serial cable. This eliminates the need for direct connection to peripherals to the Pi Pico.
-
-- F1 is used for breaking your program, the same as CRTL-C on the original machine.
-- F2 key toggles pausing the emulator.
-- F12 exits main.py program.
+### Emulator Simplification
 
 There are some simplifications/limitations to the emulator.
 
