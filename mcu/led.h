@@ -5,7 +5,7 @@
 
 // Configuration
 #define LED_RED_PIN_NUMBER 18
-#define LED_GREEN_PIN_NUMBER 25
+#define LED_GREEN_PIN_NUMBER 16
 
 void led_red_init(void);
 void led_red_set(bool value);
