@@ -166,3 +166,6 @@ There are some simplifications/limitations to the emulator.
 A dedicated PCB is in the works. The schematics is in Diptrace (https://diptrace.com/).
 
 ![Alt text](images/pico-iie_schematics.png?raw=true "schematics")
+
+
+![Alt text](images/pico-iie_pcb.png?raw=true "pcb")
