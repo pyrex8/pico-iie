@@ -167,5 +167,6 @@ A dedicated PCB is in the works. The schematics is in Diptrace (https://diptrace
 
 ![Alt text](images/pico-iie_schematics.png?raw=true "schematics")
 
+The pcb is designed to fit in this case: http://www.hammondmfg.com/pdf/1593L.pdf
 
 ![Alt text](images/pico-iie_pcb.png?raw=true "pcb")
