@@ -169,4 +169,7 @@ A dedicated PCB is in the works. The schematics is in Diptrace (https://diptrace
 
 The pcb is designed to fit in this case: http://www.hammondmfg.com/pdf/1593L.pdf
 
+
+PCB is shared on OSH Park https://oshpark.com/shared_projects/atsJNRzd
+
 ![Alt text](images/pico-iie_pcb.png?raw=true "pcb")
