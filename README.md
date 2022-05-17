@@ -1,19 +1,22 @@
 # pico-iie
 
-Apple IIe emulator that runs on the Pi Pico.
+Apple IIe emulator that runs on the Pi Pico. The pico-iie pcb is shown on the right and the fully enclosed project is on the left.
+
+<p float="left">
+  <img src="images/pico-iie_board_enclosure.jpg" alt="enclosure" width="400"/>
+  <img src="images/pico-iie_board_assembled.jpg" alt="assembled pcb" width="300"/>
+</p>
+
 
 ### Project History
 
-This project started in 2020 from a lack of desk space, curiosity, and a bit of nostalgia.
-I wanted to play some games and possibly write some code on an Apple IIe.
-I don't have a large enough desk space to permanently set up an Apple II computer and monitor plus I didn't want to go down the rabbit hole of looking at modern storage options.
-
-My first thought was to run an emulator. I use Ubuntu as my primary home machine. It seemed that the most active project on github was LinApple (https://github.com/linappleii/linapple). I had some trouble compiling the project so I went looking for alternatives. I found some historical background on LinApple from the person who originally ported AppleWin over to Linux.
+This project started in 2020 after a failed attempt at installing an Apple II emulator on a Linux machine.
+The most active project on github was LinApple (https://github.com/linappleii/linapple). I had some trouble compiling the project so I went looking for alternatives. I found some historical background on LinApple from the person who originally ported AppleWin over to Linux.
  (http://linapple.sourceforge.net/).  
 
 Then I was able to find a fork of the sourceforge code. From the initial commit it looks like this started in 2012 (https://github.com/LasDesu/linapple.git). I was able to easily compile this version and get it running. This doesn't seem to be actively updated but I found the code simpler than the more active https://github.com/linappleii/linapple.
 
-After looking at the source code for a while I understood a little about how it worked, but only at the most rudimentary level. The project was written in C++, but I couldn't find anything in the code that required C++ over C. I'm far more comfortable writing code in C so I was starting to wonder if it could just be in C. A lot of the modules we coupled together calling each others functions which made the conversion and understanding the code difficult.
+After looking at the source code for a while I understood a little about how it worked, but only at the most rudimentary level. The project was written in C++, but I couldn't find anything in the code that required C++ over C. I'm far more comfortable writing code in C so I was starting to wonder if it could just be in C. A lot of the modules were coupled together calling each others functions which made the conversion to C and understanding the code difficult.
 
 I started playing with the code to see if I could accomplish a few things:
 1. Simplify the code.
@@ -57,10 +60,10 @@ The projects use both cores and is overclocked at 470MHz.
 
 Even with the overclocking the emulator takes approximately 1.4 microseconds to complete an instruction. Even with slower emulation games are quite playable.
 
-### Hardware
+### Development Hardware
 The emulator runs on a Pi Pico using a Pimoroni Pico VGA Demo Base (https://shop.pimoroni.com/products/pimoroni-pico-vga-demo-base?variant=32369520672851) with a few modifications.
 
-![Alt text](images/pico-iie_board.jpg?raw=true "board")
+<img src="images/pico-iie_board.jpg" alt="dev board" width="400"/>
 
 ### Setup
 The pico-iie requires 3 cables:
@@ -68,19 +71,20 @@ The pico-iie requires 3 cables:
 - A VGA cable
 - An audio cable
 
-![Alt text](images/pico-iie_setup.drawio.png?raw=true "setup")
+<img src="images/pico-iie_setup.drawio.png" alt="setup" width="800"/>
 
 ### Pico VGA Demo Board Modifications
 
 The pico VGA Demo board requires 3 cut traces, 5 jumpers, and removal of some components
 
-![Alt text](images/pi_pico_vga_demo_board.png?raw=true "modifications")
+<img src="images/pi_pico_vga_demo_board.png" alt="modifications" width="800"/>
 
 ### Perf Board
 
 The perf (perforated) board adds the red LED and the serial connector for the USB to UART cable. J1 of the perf board plugs into J7 on the Pico VGA Demo Board.
 
-![Alt text](images/perf_board.png?raw=true "perf_board")
+<img src="images/perf_board.png" alt="perf board" width="500"/>
+
 
 ### Compiling and Downloading to Pi Pico
 
@@ -96,13 +100,14 @@ To program through the Pi Pico USB connector hold the BOOTSEL pin and press RUN.
 
 At this point if everything is wired up correctly you should see the ```Apple //e``` text at the top of the VGA screen with the blinking prompt and the familiar beep can be heard. The pico-iie can be powered by the USB micro connector on the Pi Pico or the USB to UART cable 5V.
 
-![Alt text](images/pico-iie_bootup_screen.jpg?raw=true "boot up screen")
+<img src="images/pico-iie_bootup_screen.jpg" alt="boot up screen" width="500"/>
 
 ### main.py
 
 Running ```main.py``` brings up a black pygame window (shown below). As long as the pygame window is in focus on the desktop, keyboard and game controller inputs are sent down to the pico-iie from your PC to the pi pico through the USB to UART cable as serial data.
 
-![Alt text](images/main_py_screenshot.png?raw=true "main.py window")
+
+<img src="images/main_py_screenshot.png" alt="main.py" width="500"/>
 
 The disk is not automatically detected. By starting ```main.py``` communication starts between a Linux PC and the Pi Pico. If main.py is started with a .dsk file the emulator will automatically reboot with the dsk imag.
 
@@ -119,7 +124,7 @@ python3 main.py cosmic.bin
 
 The green LED on the pi pico turn on solid green for a few seconds as it downloads then the game will start automatically.
 
-![Alt text](images/pico-iie_cosmic_impalas.jpg?raw=true "cosmic impalas")
+<img src="images/pico-iie_cosmic_impalas.jpg" alt="cosmic impalas" width="500"/>
 
 The red LED indicates Disk operation.
 
@@ -145,7 +150,7 @@ From the block diagram it can be seen that the peripherals use are:
 
 VGA is data is produced using PIO0 as a 16 bit parallel port controlled by a circular DMA. The length of the buffer is equivalent to one VGA scan line. This would allow a similar implementation on other Microcontrollers.
 
-![Alt text](images/pico-iie_block_diagram.drawio.png?raw=true "Pi Pico Block Diagram")
+<img src="images/pico-iie_block_diagram.drawio.png" alt="Pi Pico Block Diagram" width="500"/>
 
 ### Emulator Simplification
 
@@ -165,11 +170,62 @@ There are some simplifications/limitations to the emulator.
 
 A dedicated PCB is in the works. The schematics is in Diptrace (https://diptrace.com/).
 
-![Alt text](images/pico-iie_schematics.png?raw=true "schematics")
-
-The pcb is designed to fit in this case: http://www.hammondmfg.com/pdf/1593L.pdf
+<img src="images/pico-iie_schematics.png" alt="schematics" width="1000"/>
 
 
 PCB is shared on OSH Park https://oshpark.com/shared_projects/atsJNRzd
 
-![Alt text](images/pico-iie_pcb.png?raw=true "pcb")
+
+<img src="images/pico-iie_pcb.png" alt="pcb" width="500"/>
+
+pico-iie pcb
+
+| # | Description           | Part Number | Price |
+|---|-----------------------|-------------|-------|
+| 1 | pico-iie rev a pyrex8 | pico-iie    |$12.03 |
+
+
+
+PCB bill of Materials
+
+| # | RefDes             |Description           | Part Number       | Price |
+|---| ------------------ |--------------------- | ----------------- | ----- |
+| 1 | U1                 | Header               |                   |       |
+| 2 | J1                 | DB15F_HD             | AHDF15A-KG-TAXB   |$1.36  |
+| 3|  J2                 |CONN HEADER R/A 40POS | PRPC040SBAN-M71RC |$0.83  |
+| 4 | J3                 |STX-3000              | STX-3000          |$0.74  |
+| 5 | D1                 |1N914                 |
+| 6 | D2                 | LED Red              |
+| 7 | D3                 | LED GREEN            |
+| 8 |C1                  | 0.1uF                |
+| 9 |C2                  | 47uF                 |
+|10 | R1, R2, R3, R4     | 75                   |
+| 11 |R5, R6, R7, R8     | 499                  |
+| 12 | R9, R10, R11, R12 | 1k                   |
+| 13 |R13, R14, R15, R16 | 2k                   |
+| 14 | R17, R18, R19     | 4.02k                |
+| 15 |R20, R21, R22      | 8.06k                |
+| 16 | R23, R24, R25     | 100k                 |
+
+
+
+Pi Pico
+
+| # | Description              | Part Number | Price |
+|---|--------------------------|-------------|-------|
+| 1 | RASPBERRY PI PICO RP2040 | SC0915      | $4.00 |
+
+The pcb is designed to fit in this case: http://www.hammondmfg.com/pdf/1593L.pdf
+
+| # | Description                    | Part Number | Price |
+|---|--------------------------------|-------------|-------|
+| 1 |BOX ABS BLACK 3.631"L X 2.607"W | 1593LBK     | $5.24 |
+
+
+Cables
+
+| # | Description                | Part Number | Price |
+|---|----------------------------|-------------|-------|
+| 1 | CABLE USB UART 3.3V .1"HDR |             |$15.00 |
+| 1 | VGA cable                  |             | $5.00 |
+| 1 | 3.5mm Audio cable          |             | $3.00 |
