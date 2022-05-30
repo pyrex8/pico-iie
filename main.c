@@ -45,6 +45,7 @@ static uint8_t serial_data;
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
 {
     [SERIAL_MAIN_NULL]              = main_null,
+    [SERIAL_MAIN_REBOOT]            = main_reboot,
     [SERIAL_MAIN_RESET]             = main_reset,
     [SERIAL_MAIN_PAUSE]             = main_pause,
     [SERIAL_MAIN_START_BIN]         = main_start_bin,
@@ -71,6 +72,12 @@ void main_init(void)
 
 void main_null(uint8_t unused)
 {
+}
+
+void main_reboot(uint8_t unused)
+{
+    watchdog_enable(1, 1);
+    while(1);
 }
 
 void main_reset(uint8_t unused)

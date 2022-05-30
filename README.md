@@ -178,7 +178,7 @@ PCB is shared on OSH Park https://oshpark.com/shared_projects/atsJNRzd
 
 <img src="images/pico-iie_pcb.png" alt="pcb" width="500"/>
 
-pico-iie pcb
+pico-iie pcb (Note: OSH Park requires 3 pcbs per order and price here is per pcb)
 
 | # | Description           | Part Number | Price |
 |---|-----------------------|-------------|-------|
@@ -194,18 +194,18 @@ PCB bill of Materials
 | 2 | J1                 | DB15F_HD             | AHDF15A-KG-TAXB   |$1.36  |
 | 3|  J2                 |CONN HEADER R/A 40POS | PRPC040SBAN-M71RC |$0.83  |
 | 4 | J3                 |STX-3000              | STX-3000          |$0.74  |
-| 5 | D1                 |1N914                 |
-| 6 | D2                 | LED Red              |
-| 7 | D3                 | LED GREEN            |
-| 8 |C1                  | 0.1uF                |
-| 9 |C2                  | 47uF                 |
-|10 | R1, R2, R3, R4     | 75                   |
-| 11 |R5, R6, R7, R8     | 499                  |
-| 12 | R9, R10, R11, R12 | 1k                   |
-| 13 |R13, R14, R15, R16 | 2k                   |
-| 14 | R17, R18, R19     | 4.02k                |
-| 15 |R20, R21, R22      | 8.06k                |
-| 16 | R23, R24, R25     | 100k                 |
+| 5 | D1                 |1N914                 |                   |       |
+| 6 | D2                 | LED Red              |                   |       |
+| 7 | D3                 | LED GREEN            |                   |       |
+| 8 |C1                  | 0.1uF                |                   |       |
+| 9 |C2                  | 47uF                 |                   |       |
+| 11 |R5, R6, R7, R8     | 499                  |                   |       |
+|10 | R1, R2, R3, R4     | 75                   |                   |       |
+| 12 | R9, R10, R11, R12 | 1k                   |                   |       |
+| 13 |R13, R14, R15, R16 | 2k                   |                   |       |
+| 14 | R17, R18, R19     | 4.02k                |                   |       |
+| 15 |R20, R21, R22      | 8.06k                |                   |       |
+| 16 | R23, R24, R25     | 100k                 |                   |       |
 
 
 

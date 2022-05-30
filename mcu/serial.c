@@ -62,6 +62,10 @@ void serial_update(SerialOperation *operation, uint8_t *data)
                 {
                     *operation = SERIAL_MAIN_PAUSE;
                 }
+                else if (serial_byte == 130)
+                {
+                    *operation = SERIAL_MAIN_REBOOT;
+                }
                 user_state++;
             }
             else if (user_state == SERIAL_USER_BTN_0)

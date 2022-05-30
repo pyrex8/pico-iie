@@ -170,7 +170,7 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_F12:
+            if event.key == pygame.K_F10:
                 running = False
 
             if event.key == pygame.K_F1:
@@ -178,6 +178,9 @@ while running:
 
             if event.key == pygame.K_F2:
                 keycode = 129
+
+            if event.key == pygame.K_F9:
+                keycode = 130
 
             if event.key < 0x7F:
                 keycode = event.key
