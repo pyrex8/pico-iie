@@ -42,41 +42,44 @@ void joystick_update(uint8_t read, uint16_t address, uint8_t *byte)
         timer_count = 0;
     }
 
-    if (read)
+    if ((address & 0xFFF0) == 0xC060)
     {
-        if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_BUTTON0_ADDR)
+        if (read)
         {
-            *byte = button0;
-        }
-
-        else if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_BUTTON1_ADDR)
-        {
-            *byte = button1;
-        }
-
-        else if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_PADDLE0_ADDR)
-        {
-            counter_threshold = (timer_count * JOYSTICK_TIMER_COUNT_MULT) / JOYSTICK_TIMER_COUNT_DIV;
-            if(counter_threshold < paddle0)
+            if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_BUTTON0_ADDR)
             {
-                *byte = JOYSTICK_DATA_PIN_HIGH;
+                *byte = button0;
             }
-            else
-            {
-                *byte = JOYSTICK_DATA_PIN_LOW;
-            }
-        }
 
-        else if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_PADDLE1_ADDR)
-        {
-            counter_threshold = (timer_count * JOYSTICK_TIMER_COUNT_MULT) / JOYSTICK_TIMER_COUNT_DIV;
-            if(counter_threshold < paddle1)
+            else if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_BUTTON1_ADDR)
             {
-                *byte = JOYSTICK_DATA_PIN_HIGH;
+                *byte = button1;
             }
-            else
+
+            else if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_PADDLE0_ADDR)
             {
-                *byte = JOYSTICK_DATA_PIN_LOW;
+                counter_threshold = (timer_count * JOYSTICK_TIMER_COUNT_MULT) / JOYSTICK_TIMER_COUNT_DIV;
+                if(counter_threshold < paddle0)
+                {
+                    *byte = JOYSTICK_DATA_PIN_HIGH;
+                }
+                else
+                {
+                    *byte = JOYSTICK_DATA_PIN_LOW;
+                }
+            }
+
+            else if ((address & JOYSTICK_ALT_BIT_MASK_ADDR) == JOYSTICK_PADDLE1_ADDR)
+            {
+                counter_threshold = (timer_count * JOYSTICK_TIMER_COUNT_MULT) / JOYSTICK_TIMER_COUNT_DIV;
+                if(counter_threshold < paddle1)
+                {
+                    *byte = JOYSTICK_DATA_PIN_HIGH;
+                }
+                else
+                {
+                    *byte = JOYSTICK_DATA_PIN_LOW;
+                }
             }
         }
     }

@@ -79,23 +79,26 @@ void video_init(void)
 
 void video_update(uint8_t read, uint16_t address, uint8_t *byte)
 {
-    if (address == 0xC054)
+    if ((address & 0xFFF0) == 0xC050)
     {
-        video_page = VIDEO_PAGE_1;
-    }
-    if (address == 0xC055)
-    {
-        video_page = VIDEO_PAGE_2;
-    }
+        if (address == 0xC054)
+        {
+            video_page = VIDEO_PAGE_1;
+        }
+        if (address == 0xC055)
+        {
+            video_page = VIDEO_PAGE_2;
+        }
 
-    if (address == 0xC050)
-    {
-        video_mode = VIDEO_GRAPHICS_MODE;
-    }
+        if (address == 0xC050)
+        {
+            video_mode = VIDEO_GRAPHICS_MODE;
+        }
 
-    if (address == 0xC051)
-    {
-        video_mode = VIDEO_TEXT_MODE;
+        if (address == 0xC051)
+        {
+            video_mode = VIDEO_TEXT_MODE;
+        }
     }
 }
 

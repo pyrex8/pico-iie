@@ -41,6 +41,8 @@ target_link_libraries(
     hardware_structs
     )
 
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+
     add_compile_options(-Wall
             -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
             -Wno-unused-function # we have some for the docs that aren't called

@@ -58,7 +58,7 @@ The projects use both cores and is overclocked at 470MHz.
 - Video
 - Cassette (just output as a debug pin for getting timing information from programs running on emulator)
 
-Even with the overclocking the emulator takes approximately 1.4 microseconds to complete an instruction. Even with slower emulation games are quite playable.
+The emulator takes approximately 1 microsecond to complete a machine cycle and access peripherals.
 
 ### Development Hardware
 The emulator runs on a Pi Pico using a Pimoroni Pico VGA Demo Base (https://shop.pimoroni.com/products/pimoroni-pico-vga-demo-base?variant=32369520672851) with a few modifications.
@@ -137,7 +137,8 @@ After the file is downloaded and running the main.py can be used for keyboard in
 
 - F1 is used for breaking your program, the same as CRTL-C on the original machine.
 - F2 key toggles pausing the emulator.
-- F12 exits main.py program.
+- F9 reboots
+- F10 exits main.py program.
 
 ### Pi Pico Pinout Block Diagram
 

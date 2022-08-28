@@ -264,14 +264,13 @@ void disk_init(void)
 
 void disk_update(uint8_t read, uint16_t address, uint8_t *byte)
 {
-    uint8_t command = address & 0x0F;
-
     if ((read) && (address >= DISK_ROM_LOCATION) && (address <= DISK_ROM_LOCATION_END))
     {
        *byte = memory_disk_rom[address - DISK_ROM_LOCATION];
     }
     if ((address & DISK_COMMANDS_MASK) == DISK_COMMANDS_ADDRESS)
     {
+        uint8_t command = address & 0x0F;
         switch(command)
         {
             case 0x0 ... 0x7:
