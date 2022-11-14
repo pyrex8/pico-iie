@@ -126,6 +126,7 @@ if bin_name != "":
     print('Binary:', bin_name)
 
 joystick_present = 0
+joystick_buttons = 0
 button_0 = 0
 button_1 = 0
 paddle_0 = 0
@@ -149,7 +150,8 @@ while running:
 
     if joystick_present:
         button_0 = int(joystick.get_button(0))
-        button_1 = int(joystick.get_button(1))
+        if joystick_buttons > 1:
+            button_1 = int(joystick.get_button(1))
         paddle_0 = int((joystick.get_axis(0) + 1) * 127)
         paddle_1 = int((joystick.get_axis(1) + 1) * 127)
     else:
@@ -157,6 +159,7 @@ while running:
             joystick = pygame.joystick.Joystick(0)
             joystick.init()
             joystick_present = 1
+            joystick_buttons = joystick.get_numbuttons()
         button_0 = 0
         button_1 = 0
         paddle_0 = 128
