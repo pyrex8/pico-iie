@@ -113,7 +113,7 @@ if bin_name != "":
         bin_file.append(bin_data)
         bin_file_len += 1
 
-    while bin_file_len < 0x8000:
+    while bin_file_len < 0xC000:
         bin_file.append(0x00)
         bin_file_len += 1
 

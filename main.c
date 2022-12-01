@@ -92,7 +92,7 @@ void main_pause(uint8_t unused)
 
 void main_start_bin(uint8_t unused)
 {
-    rom_reset_vector_write(0x03, 0x08);
+    rom_reset_vector_write(0x01, 0x08);
     main_reset(0);
 }
 

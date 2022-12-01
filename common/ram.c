@@ -53,6 +53,6 @@ void ram_bin_reset(uint8_t unused)
 
 void ram_bin_data_set(uint8_t data)
 {
-    ram_update(MEMORY_WRITE, (location + 0x803), &data);
+    ram_update(MEMORY_WRITE, (location + 0x801), &data);
     location++;
 }
