@@ -6,7 +6,6 @@ typedef enum
     SERIAL_READY = 0x80,
     SERIAL_USER = 0x81,
     SERIAL_BIN = 0x82,
-    SERIAL_DISK = 0x83
 } SerialMode;
 
 typedef enum
@@ -105,20 +104,6 @@ void serial_update(SerialOperation *operation, uint8_t *data)
                 *operation = SERIAL_RAM_BIN_DATA;
             }
         }
-        else if(serial_loader == SERIAL_DISK)
-        {
-            if (disk_address > 143360)
-            {
-                serial_loader = SERIAL_READY;
-                disk_address = 0;
-                *operation = SERIAL_MAIN_START_DISK;
-            }
-            else
-            {
-                disk_address++;
-                *operation = SERIAL_DISK_DATA;
-            }
-        }
         else if(serial_loader == SERIAL_READY)
         {
             if(serial_byte == SERIAL_USER)
@@ -132,12 +117,6 @@ void serial_update(SerialOperation *operation, uint8_t *data)
                 serial_loader = SERIAL_BIN;
                 bin_address = 0;
                 *operation = SERIAL_RAM_BIN_RESET;
-            }
-            else if(serial_byte == SERIAL_DISK)
-            {
-                serial_loader = SERIAL_DISK;
-                disk_address = 0;
-                *operation = SERIAL_DISK_RESET;
             }
             else
             {

@@ -16,7 +16,6 @@ add_executable(pico-iie
     mcu/speaker.c
     mcu/vga.c
     common/audio.c
-    common/disk.c
     common/joystick.c
     common/keyboard.c
     common/ram.c

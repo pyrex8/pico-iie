@@ -27,7 +27,6 @@
 #include "common/joystick.h"
 #include "common/audio.h"
 #include "common/video.h"
-#include "common/disk.h"
 
 static C6502_interface interface_c;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
@@ -47,7 +46,6 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_MAIN_RESET]             = main_reset,
     [SERIAL_MAIN_PAUSE]             = main_pause,
     [SERIAL_MAIN_START_BIN]         = main_start_bin,
-    [SERIAL_MAIN_START_DISK]        = main_start_disk,
     [SERIAL_KEYBOARD_CODE]          = keyboard_key_code_set,
     [SERIAL_JOYSTICK_BTN0]          = joystick_btn0_set,
     [SERIAL_JOYSTICK_BTN1]          = joystick_btn1_set,
@@ -55,8 +53,6 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_JOYSTICK_PDL1]          = joystick_pdl1_set,
     [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
     [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
-    [SERIAL_DISK_RESET]             = disk_file_reset,
-    [SERIAL_DISK_DATA]              = disk_file_data_set,
 };
 
 void main_init(void)
@@ -94,14 +90,6 @@ void main_start_bin(uint8_t unused)
     main_reset(0);
 }
 
-void main_start_disk(uint8_t unused)
-{
-    main_init();
-    disk_init();
-    rom_reset_vector_write(0x62, 0xFA);
-    main_reset(0);
-}
-
 void main_core1(void)
 {
     while (1)
@@ -118,7 +106,6 @@ void main_core1(void)
 
             ram_update(interface_c.rw, interface_c.address, &interface_c.data);
             rom_update(interface_c.rw, interface_c.address, &interface_c.data);
-            disk_update(interface_c.rw, interface_c.address, &interface_c.data);
             keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
             joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
@@ -162,8 +149,5 @@ int main(void)
 
         serial_update(&serial_operation, &serial_data);
         (*main_serial_operation[serial_operation]) (serial_data);
-
-        led_red_set(disk_is_spinning());
-        led_green_set(serial_data != 0);
     }
 }
