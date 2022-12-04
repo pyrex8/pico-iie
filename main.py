@@ -12,20 +12,6 @@ import numpy
 import sys
 import serial
 
-DISK_TRACKS = 35
-DISK_SECTORS = 16
-DISK_SECTOR_SIZE = 256
-DISK_SECTOR_NIB_SIZE = 343
-
-DISK_SELF_SYNC_BYTE = 0xFF
-
-DISK_BITS_EVEN = 0xAA
-DISK_BITS_ODD = 0x55
-
-DISK_TRACK_SIZE = (DISK_SECTORS * DISK_SECTOR_SIZE)
-DISK_SIZE = (DISK_TRACKS * DISK_TRACK_SIZE)
-
-disk_name = ""
 bin_name = ""
 
 PIXELS_X = 280
@@ -57,40 +43,10 @@ ser.flush()
 try:
     arg_name = str(sys.argv[1])
     file_ext = arg_name[-3:]
-    if  file_ext == 'dsk':
-        disk_name = arg_name
     if  file_ext == 'bin':
         bin_name = arg_name
 except:
     pass
-
-if disk_name != "":
-    # read disk on startup
-    disk_image = open(disk_name, 'rb')
-
-    disk_file_len = 0
-    disk_file = bytearray()
-    disk_file.append(0x83)
-
-    while 1:
-
-        # read by character
-        char = disk_image.read(1)
-
-        if not char:
-            break
-
-        file_data = ord(char)
-        disk_file.append(file_data)
-        disk_file_len += 1
-
-    print('disk file length =',disk_file_len)
-    disk_image.close()
-
-    ser.flush()
-    ser.write(disk_file)
-
-    print('Disk:', disk_name)
 
 if bin_name != "":
     # read bin file on startup
