@@ -52,16 +52,16 @@ if bin_name != "":
     # read bin file on startup
     bin_image = open(bin_name, 'rb')
 
+    # cmd type 0x82 (1 byte) + length (2 bytes) + address (2 bytes)
+    file_size = os.path.getsize(bin_name) + 5
+    file_size_lsb = file_size & 0xFF
+    file_size_msb = (file_size >> 8) & 0xFF
+    print("binary file size =", file_size, file_size_msb, file_size_lsb, "bytes")
+
     result = bin_name.index('.')
-#    bin_address = int(bin_name[result - 4: result], 16)
-
-    bin_lsb_address = bin_name[result - 2: result]
-    bin_msb_address = bin_name[result - 4: result - 2]
-
-    print("binary start address =", bin_msb_address, bin_lsb_address)
-
-    file_size = os.path.getsize(bin_name) + 1
-    print("binary file size =", file_size, "bytes")
+    bin_address_lsb = int(bin_name[result - 2: result], 16)
+    bin_address_msb = int(bin_name[result - 4: result - 2], 16)
+    print("binary start address =", bin_address_msb, bin_address_lsb)
 
     bin_file_len = 0
     bin_file = bytearray()
