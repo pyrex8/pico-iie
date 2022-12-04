@@ -13,7 +13,6 @@
 
 #include "main.h"
 
-#include "mcu/cassette.h"
 #include "mcu/clock.h"
 #include "mcu/led.h"
 #include "mcu/test.h"
@@ -127,7 +126,6 @@ void main_core1(void)
             joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
-            cassette_update(interface_c.rw, interface_c.address, &interface_c.data);
         }
     }
 }
@@ -140,7 +138,6 @@ int main(void)
     test0_pin_init();
     test1_pin_init();
     serial_init();
-    cassette_init();
 
     main_init();
 

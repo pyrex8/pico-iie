@@ -10,7 +10,6 @@ pico_sdk_init()
 
 add_executable(pico-iie
     main.c
-    mcu/cassette.c
     mcu/clock.c
     mcu/led.c
     mcu/test.c
