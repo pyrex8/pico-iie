@@ -12,7 +12,6 @@ add_executable(pico-iie
     main.c
     mcu/clock.c
     mcu/led.c
-    mcu/test.c
     mcu/serial.c
     mcu/speaker.c
     mcu/vga.c

@@ -15,7 +15,6 @@
 
 #include "mcu/clock.h"
 #include "mcu/led.h"
-#include "mcu/test.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 #include "mcu/vga.h"
@@ -115,9 +114,7 @@ void main_core1(void)
 
         if (running)
         {
-            test1_pin_high();
             c6502_update(&interface_c);
-            test1_pin_low();
 
             ram_update(interface_c.rw, interface_c.address, &interface_c.data);
             rom_update(interface_c.rw, interface_c.address, &interface_c.data);
@@ -135,8 +132,6 @@ int main(void)
     clock_init();
     led_red_init();
     led_green_init();
-    test0_pin_init();
-    test1_pin_init();
     serial_init();
 
     main_init();
@@ -148,8 +143,6 @@ int main(void)
     while (1)
     {
         vga_wait_for_new_overscan_line();
-
-        test0_pin_high();
 
         scan_line = vga_scan_line_get();
         video_scan_line_set(scan_line);
@@ -172,7 +165,5 @@ int main(void)
 
         led_red_set(disk_is_spinning());
         led_green_set(serial_data != 0);
-
-        test0_pin_low();
     }
 }
