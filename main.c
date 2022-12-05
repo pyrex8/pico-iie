@@ -52,6 +52,8 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_JOYSTICK_PDL0]          = joystick_pdl0_set,
     [SERIAL_JOYSTICK_PDL1]          = joystick_pdl1_set,
     [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
+    [SERIAL_RAM_BIN_ADDR_LSB]       = ram_bin_addr_lsb,
+    [SERIAL_RAM_BIN_ADDR_MSB]       = ram_bin_addr_msb,
     [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
 };
 

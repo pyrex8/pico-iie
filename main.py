@@ -53,50 +53,44 @@ if bin_name != "":
     ser.flush()
 
     bin_cmd = bytearray()
-    bin_cmd.append(SERIAL_RESET)
+    bin_cmd.append(SERIAL_REBOOT)
     ser.write(bin_cmd)
-    print ("SERIAL_RESET = ", bin_cmd, len(bin_cmd))
+
+    time.sleep(0.5)
 
     bin_image = open(bin_name, 'rb')
 
     file_size = hex(os.path.getsize(bin_name))
     file_size_lsb = int(file_size[-2:], 16)
     file_size_msb = int(file_size[-4:-2], 16)
-    print("binary file size =", file_size, file_size_msb, file_size_lsb, "bytes")
 
     result = bin_name.index('.')
     bin_address_lsb = int(bin_name[result - 2: result], 16)
     bin_address_msb = int(bin_name[result - 4: result - 2], 16)
-    print("binary start address =", bin_address_msb, bin_address_lsb)
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_SIZE_LSB)
     bin_cmd.append(file_size_lsb)
     ser.write(bin_cmd)
-    print ("SERIAL_SIZE_LSB = ", bin_cmd, len(bin_cmd))
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_SIZE_MSB)
     bin_cmd.append(file_size_msb)
     ser.write(bin_cmd)
-    print ("SERIAL_SIZE_MSB = ", bin_cmd, len(bin_cmd))
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_ADDR_LSB)
     bin_cmd.append(bin_address_lsb)
     ser.write(bin_cmd)
-    print ("SERIAL_ADDR_LSB = ", bin_cmd, len(bin_cmd))
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_ADDR_MSB)
     bin_cmd.append(bin_address_msb)
     ser.write(bin_cmd)
-    print ("SERIAL_ADDR_MSB = ", bin_cmd, len(bin_cmd))
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_BIN_DATA)
     ser.write(bin_cmd)
-    print ("SERIAL_BIN_DATA = ", bin_cmd, len(bin_cmd))
 
     bin_file_len = 0
     bin_file = bytearray()
@@ -115,13 +109,13 @@ if bin_name != "":
         bin_file.append(bin_data)
         bin_file_len += 1
 
-    print('bin file length =',bin_file_len)
     bin_image.close()
 
     ser.flush()
     ser.write(bin_file)
 
-    print('Binary:', bin_name)
+    print('bin file name:', bin_name)
+    print('bin file length:',bin_file_len, 'bytes')
 
 joystick_present = 0
 joystick_buttons = 0

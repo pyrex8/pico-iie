@@ -6,6 +6,12 @@ typedef enum
     SERIAL_READY = 0x80,
     SERIAL_USER = 0x81,
     SERIAL_BIN = 0x82,
+    SERIAL_SIZE_LSB = 0x83,
+    SERIAL_SIZE_MSB = 0x84,
+    SERIAL_ADDR_LSB = 0x85,
+    SERIAL_ADDR_MSB = 0x86,
+    SERIAL_RESET = 0x87,
+    SERIAL_REBOOT = 0x88,
 } SerialMode;
 
 typedef enum
@@ -19,8 +25,8 @@ typedef enum
 
 static SerialMode serial_loader = SERIAL_READY;
 static UserState user_state = SERIAL_USER_KEYBOARD;
-static uint16_t bin_address = 0;
-static uint32_t disk_address = 0;
+static uint16_t bin_data_length = 0;
+static uint16_t bin_data_counter = 0;
 
 static uint8_t joystick_x = 0;
 static uint8_t joystick_y = 0;
@@ -92,17 +98,43 @@ void serial_update(SerialOperation *operation, uint8_t *data)
         else if(serial_loader == SERIAL_BIN)
         {
             // 48k = 0xC000
-            if (bin_address >= 17878)
+            if (bin_data_counter >= bin_data_length)
             {
                 serial_loader = SERIAL_READY;
-                bin_address = 0;
+                bin_data_counter = 0;
                 *operation = SERIAL_MAIN_START_BIN;
             }
             else
             {
-                bin_address++;
+                bin_data_counter++;
                 *operation = SERIAL_RAM_BIN_DATA;
             }
+        }
+        else if(serial_loader == SERIAL_SIZE_LSB)
+        {
+            serial_loader = SERIAL_READY;
+            bin_data_length &= 0xFF00;
+            bin_data_length |= serial_byte;
+            *operation = SERIAL_MAIN_NULL;
+            bin_data_counter = 0;
+        }
+        else if(serial_loader == SERIAL_SIZE_MSB)
+        {
+            serial_loader = SERIAL_READY;
+            bin_data_length &= 0x00FF;
+            bin_data_length |= (((uint16_t)serial_byte) << 8);
+            *operation = SERIAL_MAIN_NULL;
+            bin_data_counter = 0;
+        }
+        else if(serial_loader == SERIAL_ADDR_LSB)
+        {
+            serial_loader = SERIAL_READY;
+            *operation = SERIAL_RAM_BIN_ADDR_LSB;
+        }
+        else if(serial_loader == SERIAL_ADDR_MSB)
+        {
+            serial_loader = SERIAL_READY;
+            *operation = SERIAL_RAM_BIN_ADDR_MSB;
         }
         else if(serial_loader == SERIAL_READY)
         {
@@ -115,8 +147,36 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else if(serial_byte == SERIAL_BIN)
             {
                 serial_loader = SERIAL_BIN;
-                bin_address = 0;
+                bin_data_counter = 0;
                 *operation = SERIAL_RAM_BIN_RESET;
+            }
+            else if(serial_byte == SERIAL_SIZE_LSB)
+            {
+                serial_loader = SERIAL_SIZE_LSB;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else if(serial_byte == SERIAL_SIZE_MSB)
+            {
+                serial_loader = SERIAL_SIZE_MSB;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else if(serial_byte == SERIAL_ADDR_LSB)
+            {
+                serial_loader = SERIAL_ADDR_LSB;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else if(serial_byte == SERIAL_ADDR_MSB)
+            {
+                serial_loader = SERIAL_ADDR_MSB;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else if(serial_byte == SERIAL_RESET)
+            {
+                *operation = SERIAL_MAIN_RESET;
+            }
+            else if(serial_byte == SERIAL_REBOOT)
+            {
+                *operation = SERIAL_MAIN_REBOOT;
             }
             else
             {
