@@ -92,7 +92,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
         else if(serial_loader == SERIAL_BIN)
         {
             // 48k = 0xC000
-            if (bin_address >= 0xC000)
+            if (bin_address >= 17878)
             {
                 serial_loader = SERIAL_READY;
                 bin_address = 0;

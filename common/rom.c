@@ -29,8 +29,8 @@ void rom_update(uint8_t read, uint16_t address, uint8_t *byte)
   }
 }
 
-void rom_reset_vector_write(uint8_t lower_byte, uint8_t upper_byte)
+void rom_reset_vector_write(uint16_t address)
 {
-    rom_in_ram[ROM_RESET_VECTOR_LB_LOCATION] = lower_byte;
-    rom_in_ram[ROM_RESET_VECTOR_HB_LOCATION] = upper_byte;
+    rom_in_ram[ROM_RESET_VECTOR_LB_LOCATION] = (uint8_t)((address) & 0xFF);
+    rom_in_ram[ROM_RESET_VECTOR_HB_LOCATION] = (uint8_t)((address >> 8) & 0xFF);
 }

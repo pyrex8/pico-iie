@@ -22,15 +22,15 @@ SCREEN_Y = PIXELS_Y * SCREEN_SCALE
 SCREEN_X_TOTAL = SCREEN_X
 SCREEN_Y_TOTAL = SCREEN_Y
 
-DSK_FILE_SIZE = 143360
+SERIAL_BIN_DATA = 0x82
+SERIAL_SIZE_LSB = 0x83
+SERIAL_SIZE_MSB = 0x84
+SERIAL_ADDR_LSB = 0x85
+SERIAL_ADDR_MSB = 0x86
+SERIAL_RESET = 0x87
+SERIAL_REBOOT = 0x88
 
 BLACK = (0, 0, 0)
-
-AUDIO_MAGNITUDE = 12000
-
-EXECUTION_PERIOD_CLKS = 17030 # cycles
-
-SOUND_BUFFER_LENGTH = 2000
 
 dest = r'~!@#$%^&*()_+{}|:"<>?'
 src =  r"`1234567890-=[]\;',./"
@@ -50,12 +50,18 @@ except:
 
 if bin_name != "":
     # read bin file on startup
+    ser.flush()
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_RESET)
+    ser.write(bin_cmd)
+    print ("SERIAL_RESET = ", bin_cmd, len(bin_cmd))
+
     bin_image = open(bin_name, 'rb')
 
-    # cmd type 0x82 (1 byte) + length (2 bytes) + address (2 bytes)
-    file_size = os.path.getsize(bin_name) + 5
-    file_size_lsb = file_size & 0xFF
-    file_size_msb = (file_size >> 8) & 0xFF
+    file_size = hex(os.path.getsize(bin_name))
+    file_size_lsb = int(file_size[-2:], 16)
+    file_size_msb = int(file_size[-4:-2], 16)
     print("binary file size =", file_size, file_size_msb, file_size_lsb, "bytes")
 
     result = bin_name.index('.')
@@ -63,9 +69,38 @@ if bin_name != "":
     bin_address_msb = int(bin_name[result - 4: result - 2], 16)
     print("binary start address =", bin_address_msb, bin_address_lsb)
 
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_SIZE_LSB)
+    bin_cmd.append(file_size_lsb)
+    ser.write(bin_cmd)
+    print ("SERIAL_SIZE_LSB = ", bin_cmd, len(bin_cmd))
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_SIZE_MSB)
+    bin_cmd.append(file_size_msb)
+    ser.write(bin_cmd)
+    print ("SERIAL_SIZE_MSB = ", bin_cmd, len(bin_cmd))
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_ADDR_LSB)
+    bin_cmd.append(bin_address_lsb)
+    ser.write(bin_cmd)
+    print ("SERIAL_ADDR_LSB = ", bin_cmd, len(bin_cmd))
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_ADDR_MSB)
+    bin_cmd.append(bin_address_msb)
+    ser.write(bin_cmd)
+    print ("SERIAL_ADDR_MSB = ", bin_cmd, len(bin_cmd))
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_BIN_DATA)
+    ser.write(bin_cmd)
+    print ("SERIAL_BIN_DATA = ", bin_cmd, len(bin_cmd))
+
     bin_file_len = 0
     bin_file = bytearray()
-    bin_file.append(0x82)
+
 
     while 1:
 
@@ -78,10 +113,6 @@ if bin_name != "":
         bin_data = ord(char)
 
         bin_file.append(bin_data)
-        bin_file_len += 1
-
-    while bin_file_len < 0xC000:
-        bin_file.append(0x00)
         bin_file_len += 1
 
     print('bin file length =',bin_file_len)

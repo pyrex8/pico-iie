@@ -7,13 +7,13 @@
 #define RAM_SIZE  0xC000
 
 static uint8_t memory_ram[RAM_SIZE] = {0};
-static uint32_t location = 0;
+static uint16_t location = 0;
+static uint16_t location_start = 0;
 
 void ram_init(void)
 {
     memset(memory_ram, 0, RAM_SIZE);
 }
-
 
 void ram_deinit(void)
 {
@@ -48,11 +48,33 @@ void ram_all_get(uint8_t *buffer)
 
 void ram_bin_reset(uint8_t unused)
 {
-    location = 0;
+    location = 0x801;
+    location_start = location;
+}
+
+void ram_bin_addr_lsb(uint8_t data)
+{
+    location &= 0xFF00;
+    location |= data;
+    location = 0x0801;
+    location_start = location;
+}
+
+void ram_bin_addr_msb(uint8_t data)
+{
+    location &= 0x00FF;
+    location |= (((uint16_t)data) << 8);
+    location = 0x0801;
+    location_start = location;
+}
+
+uint16_t ram_bin_addr_get(void)
+{
+    return location_start;
 }
 
 void ram_bin_data_set(uint8_t data)
 {
-    ram_update(MEMORY_WRITE, (location + 0x801), &data);
+    ram_update(MEMORY_WRITE, location, &data);
     location++;
 }
