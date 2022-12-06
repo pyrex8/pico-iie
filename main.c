@@ -36,6 +36,8 @@ static uint8_t running = 1;
 static uint16_t scan_line;
 static int16_t overscan_line;
 static uint8_t overscan_line_odd;
+static uint32_t time_us = 0;
+static uint32_t time_us_last = 0;
 
 static SerialOperation serial_operation;
 static uint8_t serial_data;
@@ -112,6 +114,12 @@ void main_core1(void)
             joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
+
+            while(time_us == time_us_last)
+            {
+                time_us = time_us_32();
+            }
+            time_us_last = time_us;
         }
     }
 }
