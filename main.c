@@ -14,7 +14,6 @@
 #include "main.h"
 
 #include "mcu/clock.h"
-#include "mcu/led.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 #include "mcu/vga.h"
@@ -119,8 +118,6 @@ void main_core1(void)
 int main(void)
 {
     clock_init();
-    led_red_init();
-    led_green_init();
     serial_init();
 
     main_init();

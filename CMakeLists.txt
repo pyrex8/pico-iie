@@ -11,7 +11,6 @@ pico_sdk_init()
 add_executable(pico-iie
     main.c
     mcu/clock.c
-    mcu/led.c
     mcu/serial.c
     mcu/speaker.c
     mcu/vga.c
