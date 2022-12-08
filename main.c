@@ -14,6 +14,7 @@
 #include "main.h"
 
 #include "mcu/clock.h"
+#include "mcu/ps2.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 #include "mcu/vga.h"
@@ -63,6 +64,7 @@ void main_init(void)
     video_init();
     c6502_init();
     speaker_init();
+    ps2_init();
 }
 
 void main_null(uint8_t unused)
@@ -111,6 +113,7 @@ void main_core1(void)
             joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
+            ps2_update();
         }
     }
 }
@@ -148,5 +151,10 @@ int main(void)
 
         serial_update(&serial_operation, &serial_data);
         (*main_serial_operation[serial_operation]) (serial_data);
+
+        if (ps2_data_ready())
+        {
+            keyboard_key_code_set(ps2_data_get());
+        }
     }
 }
