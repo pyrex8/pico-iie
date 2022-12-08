@@ -12,7 +12,9 @@ static uint8_t ps2_keyboard_data = 0;
 
 static uint8_t bit_value = 0;
 static uint8_t bit_position = 0;
+static uint8_t data_raw = 0;
 static uint8_t data_value = 0;
+static bool key_up_detected = false;
 static uint8_t clk_state = 1;
 static uint8_t clk_state_last = 1;
 
@@ -30,12 +32,34 @@ void ps2_update(void)
     {
         if (clk_state == 0)
         {
-            bit_value = gpio_get(PS2_DATA_PIN);
+            if (bit_position < 9)
+            {
+                data_raw = data_raw >> 1;
+                if (gpio_get(PS2_DATA_PIN))
+                {
+                    data_raw |= 0x80;
+                }
+                if (bit_position == 8)
+                {
+                    data_value = data_raw;
+                }
+            }
             bit_position++;
             if (bit_position > 10)
             {
                 bit_position = 0;
-                ps2_keyboard_data_ready = true;
+                if (data_value == 0xF0)
+                {
+                    key_up_detected = true;
+                }
+                else if (key_up_detected)
+                {
+                    key_up_detected = false;
+                }
+                else
+                {
+                    ps2_keyboard_data_ready = true;
+                }
             }
         }
     }
