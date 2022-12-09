@@ -11,6 +11,7 @@ pico_sdk_init()
 add_executable(pico-iie
     main.c
     mcu/clock.c
+    mcu/joystick.c
     mcu/ps2.c
     mcu/serial.c
     mcu/speaker.c
@@ -32,6 +33,7 @@ target_link_libraries(
     pico_multicore
     hardware_vreg
     hardware_pio
+    hardware_adc
     hardware_dma
     hardware_pwm
     hardware_irq

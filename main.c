@@ -14,6 +14,7 @@
 #include "main.h"
 
 #include "mcu/clock.h"
+#include "mcu/joystick.h"
 #include "mcu/ps2.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
@@ -122,6 +123,7 @@ int main(void)
 {
     clock_init();
     serial_init();
+    joystick_init();
 
     main_init();
 
@@ -156,5 +158,11 @@ int main(void)
         {
             keyboard_key_code_set(ps2_data_get());
         }
+
+        joystick_update();
+        game_btn0_set(joystick_btn0_get());
+        game_btn1_set(joystick_btn1_get());
+        game_pdl0_set(joystick_pdl0_get());
+        game_pdl1_set(joystick_pdl1_get());
     }
 }
