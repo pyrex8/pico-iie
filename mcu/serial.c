@@ -28,8 +28,8 @@ static UserState user_state = SERIAL_USER_KEYBOARD;
 static uint16_t bin_data_length = 0;
 static uint16_t bin_data_counter = 0;
 
-static uint8_t joystick_x = 0;
-static uint8_t joystick_y = 0;
+static uint8_t game_x = 0;
+static uint8_t game_y = 0;
 static uint8_t button_0 = 0;
 static uint8_t button_1 = 0;
 
@@ -76,23 +76,23 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else if (user_state == SERIAL_USER_BTN_0)
             {
                 user_state++;
-                *operation = SERIAL_JOYSTICK_BTN0;
+                *operation = SERIAL_GAME_BTN0;
             }
             else if (user_state == SERIAL_USER_BTN_1)
             {
                 user_state++;
-                *operation = SERIAL_JOYSTICK_BTN1;
+                *operation = SERIAL_GAME_BTN1;
             }
             else if (user_state == SERIAL_USER_JOY_X)
             {
                 user_state++;
-                *operation = SERIAL_JOYSTICK_PDL0;
+                *operation = SERIAL_GAME_PDL0;
             }
             else
             {
                 user_state = SERIAL_USER_KEYBOARD;
                 serial_loader = SERIAL_READY;
-                *operation = SERIAL_JOYSTICK_PDL1;
+                *operation = SERIAL_GAME_PDL1;
             }
         }
         else if(serial_loader == SERIAL_BIN)

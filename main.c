@@ -24,7 +24,7 @@
 #include "common/rom.h"
 #include "common/ram.h"
 #include "common/keyboard.h"
-#include "common/joystick.h"
+#include "common/game.h"
 #include "common/audio.h"
 #include "common/video.h"
 
@@ -47,10 +47,10 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_MAIN_PAUSE]             = main_pause,
     [SERIAL_MAIN_START_BIN]         = main_start_bin,
     [SERIAL_KEYBOARD_CODE]          = keyboard_key_code_set,
-    [SERIAL_JOYSTICK_BTN0]          = joystick_btn0_set,
-    [SERIAL_JOYSTICK_BTN1]          = joystick_btn1_set,
-    [SERIAL_JOYSTICK_PDL0]          = joystick_pdl0_set,
-    [SERIAL_JOYSTICK_PDL1]          = joystick_pdl1_set,
+    [SERIAL_GAME_BTN0]              = game_btn0_set,
+    [SERIAL_GAME_BTN1]              = game_btn1_set,
+    [SERIAL_GAME_PDL0]              = game_pdl0_set,
+    [SERIAL_GAME_PDL1]              = game_pdl1_set,
     [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
     [SERIAL_RAM_BIN_ADDR_LSB]       = ram_bin_addr_lsb,
     [SERIAL_RAM_BIN_ADDR_MSB]       = ram_bin_addr_msb,
@@ -110,7 +110,7 @@ void main_core1(void)
             ram_update(interface_c.rw, interface_c.address, &interface_c.data);
             rom_update(interface_c.rw, interface_c.address, &interface_c.data);
             keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
-            joystick_update(interface_c.rw, interface_c.address, &interface_c.data);
+            game_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
             ps2_update();
