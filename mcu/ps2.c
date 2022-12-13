@@ -17,7 +17,7 @@
 #define PS2_DOWN_KEY 0x72
 #define PS2_LEFT_KEY 0x6B
 #define PS2_RIGHT_KEY 0x74
-#define PS2_F12_KEY 0x07
+#define PS2_F10_KEY 0x09
 
 #define A2E_UP_KEY 0x0B
 #define A2E_DOWN_KEY 0x0A
@@ -141,7 +141,7 @@ void ps2_update(void)
 
                             if(ps2_ctrl)
                             {
-                                if(ps2_data == PS2_F12_KEY)
+                                if(ps2_data == PS2_F10_KEY)
                                 {
                                     // reset = true;
                                 }

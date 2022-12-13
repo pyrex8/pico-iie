@@ -44,7 +44,6 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
 {
     [SERIAL_MAIN_NULL]              = main_null,
     [SERIAL_MAIN_REBOOT]            = main_reboot,
-    [SERIAL_MAIN_RESET]             = main_reset,
     [SERIAL_MAIN_START_BIN]         = main_start_bin,
     [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
     [SERIAL_RAM_BIN_ADDR_LSB]       = ram_bin_addr_lsb,

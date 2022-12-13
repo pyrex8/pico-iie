@@ -9,8 +9,7 @@ typedef enum
     SERIAL_SIZE_MSB = 0x84,
     SERIAL_ADDR_LSB = 0x85,
     SERIAL_ADDR_MSB = 0x86,
-    SERIAL_RESET = 0x87,
-    SERIAL_REBOOT = 0x88,
+    SERIAL_REBOOT = 0x87,
 } SerialMode;
 
 static SerialMode serial_loader = SERIAL_READY;
@@ -106,10 +105,6 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             {
                 serial_loader = SERIAL_ADDR_MSB;
                 *operation = SERIAL_MAIN_NULL;
-            }
-            else if(serial_byte == SERIAL_RESET)
-            {
-                *operation = SERIAL_MAIN_RESET;
             }
             else if(serial_byte == SERIAL_REBOOT)
             {
