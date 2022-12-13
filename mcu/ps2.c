@@ -17,6 +17,8 @@
 #define PS2_DOWN_KEY 0x72
 #define PS2_LEFT_KEY 0x6B
 #define PS2_RIGHT_KEY 0x74
+#define PS2_F1_KEY 0x05
+#define PS2_F2_KEY 0x06
 #define PS2_F10_KEY 0x09
 
 #define A2E_UP_KEY 0x0B
@@ -142,6 +144,16 @@ void ps2_update(void)
                                 {
                                     ps2_operation = PS2_MAIN_REBOOT;
                                 }
+                            }
+
+                            if(ps2_data == PS2_F2_KEY)
+                            {
+                                ps2_operation = PS2_MAIN_RESET;
+                            }
+
+                            if(ps2_data == PS2_F1_KEY)
+                            {
+                                ps2_operation = PS2_MAIN_PAUSE;
                             }
                         }
                     }

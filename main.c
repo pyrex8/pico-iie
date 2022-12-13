@@ -117,8 +117,8 @@ void main_core1(void)
             game_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
-            ps2_update();
         }
+        ps2_update();
     }
 }
 
