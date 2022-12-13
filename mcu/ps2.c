@@ -104,8 +104,8 @@ void ps2_update(void)
                 {
                   ps2_key_up = 1;
                 // TODO: fix this logic
-                  ps2_shift = 0;
-                  ps2_ctrl = 0;
+                  // ps2_shift = 0;
+                  // ps2_ctrl = 0;
                 }
                 else
                 {
@@ -157,7 +157,18 @@ void ps2_update(void)
                             }
                         }
                     }
-                    ps2_key_up = 0;
+                    else
+                    {
+                        if(ps2_data == PS2_SHIFT_KEY)
+                        {
+                            ps2_shift = 0;
+                        }
+                        if(ps2_data == PS2_CTRL_KEY)
+                        {
+                            ps2_ctrl = 0;
+                        }
+                        ps2_key_up = 0;
+                    }
                 }
             }
         }
