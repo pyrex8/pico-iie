@@ -24,13 +24,8 @@
 #define A2E_LEFT_KEY 0x08
 #define A2E_RIGHT_KEY 0x15
 
-static bool ps2_keyboard_data_ready = false;
-static uint8_t ps2_keyboard_data = 0;
-
-static uint8_t bit_value = 0;
 static uint8_t bit_position = 0;
 static uint8_t data_raw = 0;
-static bool key_up_detected = false;
 static uint8_t clk_state = 1;
 static uint8_t clk_state_last = 1;
 
@@ -41,6 +36,8 @@ static uint8_t ps2_ctrl = 0;
 static uint8_t ps2_caplock = 0;
 
 static uint8_t key_code = 0;
+
+static Ps2Operation ps2_operation;
 
 static const uint8_t keymap_ps2_2_iie[PS2_ASCII_MAP_SIZE] =
 {
@@ -143,7 +140,7 @@ void ps2_update(void)
                             {
                                 if(ps2_data == PS2_F10_KEY)
                                 {
-                                    // reset = true;
+                                    ps2_operation = PS2_MAIN_REBOOT;
                                 }
                             }
                         }
@@ -154,6 +151,13 @@ void ps2_update(void)
         }
     }
     clk_state_last = clk_state;
+}
+
+void ps2_command(Ps2Operation *operation, uint8_t *data)
+{
+    *operation = ps2_operation;
+    ps2_operation = PS2_MAIN_NULL;
+    *data = 0;
 }
 
 bool ps2_data_ready(void)

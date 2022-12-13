@@ -39,7 +39,9 @@ static int16_t overscan_line;
 static uint8_t overscan_line_odd;
 
 static SerialOperation serial_operation;
-static uint8_t serial_data;
+static Ps2Operation ps2_operation;
+static uint8_t operation_data;
+
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
 {
     [SERIAL_MAIN_NULL]              = main_null,
@@ -49,6 +51,14 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_RAM_BIN_ADDR_LSB]       = ram_bin_addr_lsb,
     [SERIAL_RAM_BIN_ADDR_MSB]       = ram_bin_addr_msb,
     [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
+};
+
+static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
+{
+    [PS2_MAIN_NULL]                 = main_null,
+    [PS2_MAIN_REBOOT]               = main_reboot,
+    [PS2_MAIN_RESET]                = main_reset,
+    [PS2_MAIN_PAUSE]                = main_pause,
 };
 
 void main_init(void)
@@ -144,8 +154,11 @@ int main(void)
             video_line_data_get(video_line_data);
         }
 
-        serial_update(&serial_operation, &serial_data);
-        (*main_serial_operation[serial_operation]) (serial_data);
+        serial_update(&serial_operation, &operation_data);
+        (*main_serial_operation[serial_operation]) (operation_data);
+
+        ps2_command(&ps2_operation, &operation_data);
+        (*main_ps2_operation[ps2_operation]) (operation_data);
 
         if (ps2_data_ready())
         {
