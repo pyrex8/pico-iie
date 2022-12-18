@@ -59,6 +59,7 @@ static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
     [PS2_MAIN_REBOOT]               = main_reboot,
     [PS2_MAIN_RESET]                = main_reset,
     [PS2_MAIN_PAUSE]                = main_pause,
+    [PS2_MAIN_START_BIN]            = main_start_bin,
 };
 
 void main_init(void)

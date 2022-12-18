@@ -43,9 +43,10 @@ if bin_name != "":
 
     bin_image = open(bin_name, 'rb')
 
-    file_size = hex(os.path.getsize(bin_name) - 1)
-    file_size_lsb = int(file_size[-2:], 16)
-    file_size_msb = int(file_size[-4:-2], 16)
+    file_size = os.path.getsize(bin_name)
+    file_size_hex = hex(file_size)
+    file_size_lsb = int(file_size_hex[-2:], 16)
+    file_size_msb = int(file_size_hex[-4:-2], 16)
 
     result = bin_name.index('.')
     bin_address_lsb = int(bin_name[result - 2: result], 16)
@@ -75,7 +76,6 @@ if bin_name != "":
     bin_cmd.append(SERIAL_BIN_DATA)
     ser.write(bin_cmd)
 
-    bin_file_len = 0
     bin_file = bytearray()
 
 
@@ -90,7 +90,9 @@ if bin_name != "":
         bin_data = ord(char)
 
         bin_file.append(bin_data)
-        bin_file_len += 1
+
+    # add one byte at end to start binary
+    bin_file.append(0)
 
     bin_image.close()
 
@@ -98,7 +100,7 @@ if bin_name != "":
     ser.write(bin_file)
 
     print('bin file name:', bin_name)
-    print('bin file length:',bin_file_len, 'bytes')
+    print('bin file size:',file_size, 'bytes')
 
 ser.flush()
 ser.close()
