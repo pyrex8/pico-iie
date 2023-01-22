@@ -166,10 +166,13 @@ int main(void)
             keyboard_key_code_set(ps2_data_get());
         }
 
-        joystick_update();
-        game_btn0_set(joystick_btn0_get());
-        game_btn1_set(joystick_btn1_get());
-        game_pdl0_set(joystick_pdl0_get());
-        game_pdl1_set(joystick_pdl1_get());
+        if (vga_scan_line_get() == 0)
+        {
+            joystick_update();
+            game_btn0_set(joystick_btn0_get());
+            game_btn1_set(joystick_btn1_get());
+            game_pdl0_set(joystick_pdl0_get());
+            game_pdl1_set(joystick_pdl1_get());
+        }
     }
 }
