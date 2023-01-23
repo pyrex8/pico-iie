@@ -15,7 +15,7 @@
 
 #include "mcu/clock.h"
 #include "mcu/joystick.h"
-#include "mcu/ps2.h"
+#include "mcu/keys.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 #include "mcu/vga.h"
@@ -39,7 +39,6 @@ static int16_t overscan_line;
 static uint8_t overscan_line_odd;
 
 static SerialOperation serial_operation;
-static Ps2Operation ps2_operation;
 static uint8_t operation_data;
 
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
@@ -53,15 +52,6 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
 };
 
-static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
-{
-    [PS2_MAIN_NULL]                 = main_null,
-    [PS2_MAIN_REBOOT]               = main_reboot,
-    [PS2_MAIN_RESET]                = main_reset,
-    [PS2_MAIN_PAUSE]                = main_pause,
-    [PS2_MAIN_START_BIN]            = main_start_bin,
-};
-
 void main_init(void)
 {
     rom_init();
@@ -69,7 +59,6 @@ void main_init(void)
     video_init();
     c6502_init();
     speaker_init();
-    ps2_init();
 }
 
 void main_null(uint8_t unused)
@@ -119,7 +108,6 @@ void main_core1(void)
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
         }
-        ps2_update();
     }
 }
 
@@ -128,6 +116,7 @@ int main(void)
     clock_init();
     serial_init();
     joystick_init();
+    keys_init();
 
     main_init();
 
@@ -145,10 +134,12 @@ int main(void)
 
         if (overscan_line_odd)
         {
+            keys_clk_high();
             video_buffer_get(vga_scan_line_buffer());
         }
         else
         {
+            keys_clk_low();
             video_buffer_clear();
             video_address = video_address_get();
             ram_data_get(VIDEO_BYTES_PER_LINE, video_address, video_line_data);
@@ -157,14 +148,6 @@ int main(void)
 
         serial_update(&serial_operation, &operation_data);
         (*main_serial_operation[serial_operation]) (operation_data);
-
-        ps2_command(&ps2_operation, &operation_data);
-        (*main_ps2_operation[ps2_operation]) (operation_data);
-
-        if (ps2_data_ready())
-        {
-            keyboard_key_code_set(ps2_data_get());
-        }
 
         if (vga_scan_line_get() == 0)
         {
