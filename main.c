@@ -132,14 +132,14 @@ int main(void)
         video_scan_line_set(scan_line);
         overscan_line_odd = vga_overscan_line_is_odd();
 
+        keys_update();
+
         if (overscan_line_odd)
         {
-            keys_clk_high();
             video_buffer_get(vga_scan_line_buffer());
         }
         else
         {
-            keys_clk_low();
             video_buffer_clear();
             video_address = video_address_get();
             ram_data_get(VIDEO_BYTES_PER_LINE, video_address, video_line_data);
@@ -156,6 +156,11 @@ int main(void)
             game_btn1_set(joystick_btn1_get());
             game_pdl0_set(joystick_pdl0_get());
             game_pdl1_set(joystick_pdl1_get());
+        }
+
+        if (scan_line == 0 && keys_data_get())
+        {
+            keyboard_key_code_set('A');
         }
     }
 }
