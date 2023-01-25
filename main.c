@@ -158,9 +158,9 @@ int main(void)
             game_pdl1_set(joystick_pdl1_get());
         }
 
-        if (scan_line == 0 && keys_data_get())
+        if (scan_line == 0 && keys_data_waiting())
         {
-            keyboard_key_code_set('A');
+            keyboard_key_code_set(keys_data_get());
         }
     }
 }
