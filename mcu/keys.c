@@ -4,8 +4,8 @@
 #include "keys.h"
 #include "pico/stdlib.h"
 
-#define KEYS_DATA_PIN 16
-#define KEYS_SCK_PIN 18
+#define KEYS_DATA_PIN 18
+#define KEYS_SCK_PIN 17
 #define KEYS_MATRIX_MASK 0x7F
 #define KEYS_MATRIX_TOTAL (KEYS_MATRIX_MASK + 1)
 #define KEYS_MATRIX_VALID (KEYS_MATRIX_TOTAL - 0x10)

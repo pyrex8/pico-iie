@@ -4,17 +4,17 @@
 
 loop:
     pull block
-    out pins, 16
+    out pins, 9
     jmp loop
 
 % c-sdk {
 static inline void parallel_program_init(PIO pio, uint sm, uint offset, uint pin) {
     pio_sm_config c = parallel_program_get_default_config(offset);
-    for(uint i = 0; i < 16; i++) {
+    for(uint i = 7; i < 16; i++) {
         pio_gpio_init(pio, i);
     }
-    pio_sm_set_consecutive_pindirs(pio, sm, pin, 16, true);
-    sm_config_set_out_pins(&c, pin, 16);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 9, true);
+    sm_config_set_out_pins(&c, pin, 9);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
