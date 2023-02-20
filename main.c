@@ -10,6 +10,7 @@
 #include "hardware/irq.h"
 #include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
+#include "hardware/watchdog.h"
 
 #include "main.h"
 
@@ -156,6 +157,13 @@ int main(void)
             game_btn1_set(joystick_btn1_get());
             game_pdl0_set(joystick_pdl0_get());
             game_pdl1_set(joystick_pdl1_get());
+
+            static uint8_t counter = 0;
+            counter++;
+            if (counter == 0)
+            {
+                serial_test();
+            }
         }
 
         if (scan_line == 0 && keys_data_waiting())
