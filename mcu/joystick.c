@@ -5,9 +5,15 @@
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
 
-#define JOYSTICK_FIRE_PIN 22
-#define JOYSTICK_X_PIN 26
+#define JOYSTICK_FIRE_PIN 19
+#define JOYSTICK_UP_PIN 20
+#define JOYSTICK_DOWN_PIN 21
+#define JOYSTICK_LEFT_PIN 22
+#define JOYSTICK_RIGHT_PIN 26
+#define JOYSTICK_X_PIN 28
 #define JOYSTICK_Y_PIN 27
+
+#define JOYSTICK_PDL_CENTER 127
 
 #define JOYSTICK_ADC_FULL_COUNT 4096
 #define JOYSTICK_ADC_LOW (JOYSTICK_ADC_FULL_COUNT / 3)
@@ -21,19 +27,47 @@ static uint8_t joystick_pdl1 = 0;
 void joystick_init(void)
 {
     gpio_init(JOYSTICK_FIRE_PIN);
-    gpio_set_dir(JOYSTICK_FIRE_PIN, GPIO_IN);
+    gpio_init(JOYSTICK_UP_PIN);
+    gpio_init(JOYSTICK_DOWN_PIN);
+    gpio_init(JOYSTICK_LEFT_PIN);
+    gpio_init(JOYSTICK_RIGHT_PIN);
 
+    gpio_set_dir(JOYSTICK_FIRE_PIN, GPIO_IN);
+    gpio_set_dir(JOYSTICK_UP_PIN, GPIO_IN);
+    gpio_set_dir(JOYSTICK_DOWN_PIN, GPIO_IN);
+    gpio_set_dir(JOYSTICK_LEFT_PIN, GPIO_IN);
+    gpio_set_dir(JOYSTICK_RIGHT_PIN, GPIO_IN);
+
+    gpio_pull_up(JOYSTICK_FIRE_PIN);
+    gpio_pull_up(JOYSTICK_UP_PIN);
+    gpio_pull_up(JOYSTICK_DOWN_PIN);
+    gpio_pull_up(JOYSTICK_LEFT_PIN);
+    gpio_pull_up(JOYSTICK_RIGHT_PIN);
+
+#if 0
+    // TODO: add paddle support
     adc_init();
     gpio_set_dir(JOYSTICK_X_PIN, GPIO_IN);
     gpio_set_dir(JOYSTICK_Y_PIN, GPIO_IN);
     adc_gpio_init(JOYSTICK_X_PIN);
     adc_gpio_init(JOYSTICK_Y_PIN);
+#endif
 }
 
 void joystick_update(void)
 {
     joystick_btn0 = gpio_get(JOYSTICK_FIRE_PIN) ? 0 : 1;
 
+    joystick_pdl0 = JOYSTICK_PDL_CENTER;
+    joystick_pdl0 += gpio_get(JOYSTICK_LEFT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+    joystick_pdl0 -= gpio_get(JOYSTICK_RIGHT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+
+    joystick_pdl1 = JOYSTICK_PDL_CENTER;
+    joystick_pdl1 += gpio_get(JOYSTICK_UP_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+    joystick_pdl1 -= gpio_get(JOYSTICK_DOWN_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+
+#if 0
+    // TODO: add paddle support
     adc_select_input(0);
     uint16_t joy_x = adc_read();
     adc_select_input(1);
@@ -57,6 +91,7 @@ void joystick_update(void)
     {
         joystick_pdl1 = 255;
     }
+#endif
 }
 
 uint8_t joystick_btn0_get(void)
