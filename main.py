@@ -18,9 +18,10 @@ SERIAL_ADDR_LSB = 0x85
 SERIAL_ADDR_MSB = 0x86
 SERIAL_REBOOT = 0x87
 
-BAUDRATE = 230400
-COM_PORT = '/dev/ttyUSB0'
+BAUDRATE = 115200
+COM_PORT = '/dev/rfcomm0'
 ser = serial.Serial(COM_PORT, baudrate=BAUDRATE, rtscts=False)
+time.sleep(2)
 ser.flush()
 
 try:
@@ -98,6 +99,7 @@ if bin_name != "":
 
     ser.flush()
     ser.write(bin_file)
+    time.sleep(2)
 
     print('bin file name:', bin_name)
     print('bin file size:',file_size, 'bytes')

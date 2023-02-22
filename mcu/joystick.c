@@ -59,12 +59,12 @@ void joystick_update(void)
     joystick_btn0 = gpio_get(JOYSTICK_FIRE_PIN) ? 0 : 1;
 
     joystick_pdl0 = JOYSTICK_PDL_CENTER;
-    joystick_pdl0 += gpio_get(JOYSTICK_LEFT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
-    joystick_pdl0 -= gpio_get(JOYSTICK_RIGHT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+    joystick_pdl0 -= gpio_get(JOYSTICK_LEFT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+    joystick_pdl0 += gpio_get(JOYSTICK_RIGHT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
 
     joystick_pdl1 = JOYSTICK_PDL_CENTER;
-    joystick_pdl1 += gpio_get(JOYSTICK_UP_PIN) ? 0 : JOYSTICK_PDL_CENTER;
-    joystick_pdl1 -= gpio_get(JOYSTICK_DOWN_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+    joystick_pdl1 -= gpio_get(JOYSTICK_UP_PIN) ? 0 : JOYSTICK_PDL_CENTER;
+    joystick_pdl1 += gpio_get(JOYSTICK_DOWN_PIN) ? 0 : JOYSTICK_PDL_CENTER;
 
 #if 0
     // TODO: add paddle support

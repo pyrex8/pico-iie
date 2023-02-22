@@ -24,21 +24,23 @@ static uint8_t button_1 = 0;
 
 // For HC-06 settings
 //const char name[] = "AT+NAMEpico-iie";
-// 4=9600, 5=19200, 6=38400, 7=57600, 8=115200
-//const char baud[] = "AT+BAUD4";
+// 4=9600, 5=19200, 6=38400, 7=57600, 8=115200, 9=230400
+// const char baud[] = "AT+BAUD8";
+// const char message[] = "hello world!";
 
 void serial_init(void)
 {
-    uart_init(UART_ID, UART_BAUD_RATE_AT_MODE);
+    uart_init(UART_ID, UART_BAUD_RATE);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
-//    sleep_ms(1000);
-//    uart_tx_wait_blocking(UART_ID);
-//    uart_write_blocking(UART_ID, name, strlen(name));
-//    uart_write_blocking(UART_ID, baud, strlen(baud));
+    // sleep_ms(1000);
+    // uart_tx_wait_blocking(UART_ID);
+    // uart_write_blocking(UART_ID, name, strlen(name));
+    // uart_write_blocking(UART_ID, baud, strlen(baud));
 
-    uart_set_baudrate(UART_ID, UART_BAUD_RATE);
+    // uart_set_baudrate(UART_ID, UART_BAUD_RATE);
+    // uart_write_blocking(UART_ID, message, strlen(message));
 }
 
 void serial_update(SerialOperation *operation, uint8_t *data)
