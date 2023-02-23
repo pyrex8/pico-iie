@@ -158,12 +158,7 @@ int main(void)
             game_pdl0_set(joystick_pdl0_get());
             game_pdl1_set(joystick_pdl1_get());
 
-            static uint8_t counter = 0;
-            counter++;
-            if (counter == 0)
-            {
-                serial_test();
-            }
+            serial_test();
         }
 
         if (scan_line == 0 && keys_data_waiting())

@@ -21,7 +21,10 @@ SERIAL_REBOOT = 0x87
 BAUDRATE = 115200
 COM_PORT = '/dev/rfcomm0'
 ser = serial.Serial(COM_PORT, baudrate=BAUDRATE, rtscts=False)
-time.sleep(2)
+
+# wait for test byte 'A'
+while ser.inWaiting() == 0:
+    pass
 ser.flush()
 
 try:
