@@ -158,7 +158,7 @@ int main(void)
             game_pdl0_set(joystick_pdl0_get());
             game_pdl1_set(joystick_pdl1_get());
 
-            serial_test();
+            serial_state_send();
         }
 
         if (scan_line == 0 && keys_data_waiting())

@@ -135,7 +135,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
 }
 
 
-void serial_test(void)
+void serial_state_send(void)
 {
     uart_putc(UART_ID, 'A');
 }

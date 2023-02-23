@@ -22,7 +22,7 @@ BAUDRATE = 115200
 COM_PORT = '/dev/rfcomm0'
 ser = serial.Serial(COM_PORT, baudrate=BAUDRATE, rtscts=False)
 
-# wait for test byte 'A'
+# wait for byte returned from HC-06
 while ser.inWaiting() == 0:
     pass
 ser.flush()
