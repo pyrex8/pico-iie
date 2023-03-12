@@ -11,6 +11,7 @@
 #include "hardware/structs/mpu.h"
 #include "hardware/structs/vreg_and_chip_reset.h"
 #include "hardware/watchdog.h"
+#include "hardware/flash.h"
 
 #include "main.h"
 
@@ -40,7 +41,18 @@ static int16_t overscan_line;
 static uint8_t overscan_line_odd;
 
 static SerialOperation serial_operation;
+static KeysOperation keys_operation;
 static uint8_t operation_data;
+
+static const void (*main_keys_operation[KEYS_OPERATIONS_TOTAL]) (uint8_t data) =
+{
+    [KEYS_MAIN_NULL]                = main_null,
+    [KEYS_MAIN_PAUSE]               = main_pause,
+    [KEYS_MAIN_RESET]               = main_reset,
+    [KEYS_MAIN_REBOOT]              = main_reboot,
+    [KEYS_MAIN_MENU]                = main_menu,
+    [KEYS_KEYBOARD_KEY]             = keyboard_key_code_set,
+};
 
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
 {
@@ -80,6 +92,10 @@ void main_reset(uint8_t unused)
 void main_pause(uint8_t unused)
 {
     running ^= 1;
+}
+
+void main_menu(uint8_t unused)
+{
 }
 
 void main_start_bin(uint8_t unused)
@@ -159,11 +175,9 @@ int main(void)
             game_pdl1_set(joystick_pdl1_get());
 
             serial_state_send();
-        }
 
-        if (scan_line == 0 && keys_data_waiting())
-        {
-            keyboard_key_code_set(keys_data_get());
+            keys_operation_update(&keys_operation, &operation_data);
+            (*main_keys_operation[keys_operation]) (operation_data);
         }
     }
 }

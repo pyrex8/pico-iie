@@ -208,3 +208,14 @@ uint8_t keys_data_get(void)
     keys_waiting = 0;
     return key;
 }
+
+void keys_operation_update(KeysOperation *operation, uint8_t *data)
+{
+    *operation = KEYS_MAIN_NULL;
+    *data = 0;
+    if (keys_data_waiting())
+    {
+        *operation = KEYS_KEYBOARD_KEY;
+        *data = keys_data_get();
+    }
+}

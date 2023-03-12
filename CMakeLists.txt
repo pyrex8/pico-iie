@@ -38,6 +38,8 @@ target_link_libraries(
     hardware_pwm
     hardware_irq
     hardware_structs
+    hardware_flash
+    hardware_sync
     )
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
