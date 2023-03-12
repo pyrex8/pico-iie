@@ -17,7 +17,7 @@
 
 #include "mcu/clock.h"
 #include "mcu/joystick.h"
-#include "mcu/keys.h"
+#include "mcu/key.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 #include "mcu/vga.h"
@@ -41,18 +41,18 @@ static int16_t overscan_line;
 static uint8_t overscan_line_odd;
 
 static SerialOperation serial_operation;
-static KeysOperation keys_operation;
+static KeyOperation key_operation;
 static uint8_t operation_data;
 
-static const void (*main_keys_operation[KEYS_OPERATIONS_TOTAL]) (uint8_t data) =
+static const void (*main_key_operation[KEY_OPERATIONS_TOTAL]) (uint8_t data) =
 {
-    [KEYS_MAIN_NULL]                = main_null,
-    [KEYS_MAIN_PAUSE]               = main_pause,
-    [KEYS_MAIN_RESUME]              = main_resume,
-    [KEYS_MAIN_RESET]               = main_reset,
-    [KEYS_MAIN_REBOOT]              = main_reboot,
-    [KEYS_MAIN_MENU]                = main_menu,
-    [KEYS_KEYBOARD_KEY]             = keyboard_key_code_set,
+    [KEY_MAIN_NULL]                = main_null,
+    [KEY_MAIN_PAUSE]               = main_pause,
+    [KEY_MAIN_RESUME]              = main_resume,
+    [KEY_MAIN_RESET]               = main_reset,
+    [KEY_MAIN_REBOOT]              = main_reboot,
+    [KEY_MAIN_MENU]                = main_menu,
+    [KEY_KEYBOARD_KEY]             = keyboard_key_code_set,
 };
 
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
@@ -139,7 +139,7 @@ int main(void)
     clock_init();
     serial_init();
     joystick_init();
-    keys_init();
+    key_init();
 
     main_init();
 
@@ -155,7 +155,7 @@ int main(void)
         video_scan_line_set(scan_line);
         overscan_line_odd = vga_overscan_line_is_odd();
 
-        keys_update();
+        key_update();
 
         if (overscan_line_odd)
         {
@@ -182,8 +182,8 @@ int main(void)
 
             serial_state_send();
 
-            keys_operation_update(&keys_operation, &operation_data);
-            (*main_keys_operation[keys_operation]) (operation_data);
+            key_operation_update(&key_operation, &operation_data);
+            (*main_key_operation[key_operation]) (operation_data);
         }
     }
 }
