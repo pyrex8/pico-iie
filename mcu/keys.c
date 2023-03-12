@@ -26,9 +26,11 @@
 #define KEYS_CTRL_LEFT 0x41
 #define KEYS_CTRL_RIGHT 0x09
 #define KEYS_CAPS_LOCK 0x20
-#define KEYS_F1 0x00 // pause/resume
-#define KEYS_F2 0x42 // shift + f2 = reset
-#define KEYS_F3 0x43 // ctrl + f3 = reboot
+#define KEYS_F1 0x00 // f1 = pause
+#define KEYS_F2 0x42 // f2 = resume
+#define KEYS_F3 0x43 // shift + f3 = reset
+#define KEYS_F4 0x44 // shift + f4 = menu
+#define KEYS_F5 0x45 // ctrl + f5 = reboot
 
 #define KEYS_OFFSET_CAPS_LOCK_ON  0x00
 #define KEYS_OFFSET_CAPS_LOCK_OFF 0x70
@@ -48,6 +50,12 @@ static uint8_t keys_shift_right = 0;
 static uint8_t keys_ctrl_left = 0;
 static uint8_t keys_ctrl_right = 0;
 static uint8_t keys_caplock = 1;
+
+static uint8_t keys_pause = 0;
+static uint8_t keys_resume = 0;
+static uint8_t keys_reset = 0;
+static uint8_t keys_reboot = 0;
+static uint8_t keys_menu = 0;
 
 static const uint8_t keys_iie[KEYS_MATRIX_VALID * 3] =
 {
@@ -128,6 +136,15 @@ void keys_update(void)
         if (keys_index == KEYS_SHIFT_RIGHT)
         {
             keys_shift_right = 1;
+        }
+
+        if (keys_index == KEYS_F1)
+        {
+            keys_pause = 1;
+        }
+        if (keys_index == KEYS_F2)
+        {
+            keys_resume = 1;
         }
 
         if (keys_data[keys_index] == 0)
@@ -213,6 +230,21 @@ void keys_operation_update(KeysOperation *operation, uint8_t *data)
 {
     *operation = KEYS_MAIN_NULL;
     *data = 0;
+
+    if (keys_pause)
+    {
+        keys_pause = 0;
+        *operation = KEYS_MAIN_PAUSE;
+        return;
+    }
+
+    if (keys_resume)
+    {
+        keys_resume = 0;
+        *operation = KEYS_MAIN_RESUME;
+        return;
+    }
+
     if (keys_data_waiting())
     {
         *operation = KEYS_KEYBOARD_KEY;

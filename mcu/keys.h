@@ -5,6 +5,7 @@ typedef enum
 {
     KEYS_MAIN_NULL = 0,
     KEYS_MAIN_PAUSE,
+    KEYS_MAIN_RESUME,
     KEYS_MAIN_RESET,
     KEYS_MAIN_REBOOT,
     KEYS_MAIN_MENU,
