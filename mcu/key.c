@@ -1,11 +1,11 @@
-// Includes -------------------------------------------------------------------
+// includes -------------------------------------------------------------------
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include "key.h"
 #include "pico/stdlib.h"
 
-// Definitions ----------------------------------------------------------------
+// definitions ----------------------------------------------------------------
 #define KEY_DATA_PIN 18
 #define KEY_SCK_PIN 17
 #define KEY_MATRIX_MASK 0x7F
@@ -52,6 +52,7 @@
 
 #define KEY_SWITCH_CLOSED 0
 
+// constant data --------------------------------------------------------------
 static const uint8_t key_iie[KEY_MATRIX_VALID * 3] =
 {
 // Caps lock on (default on power up)
@@ -88,6 +89,7 @@ static const uint8_t key_iie[KEY_MATRIX_VALID * 3] =
    TAB,  'Q',  'W',  'E',  'R',  'T',  'Y',  'U',  'I',  'O',  'P',  '{',  '}', 0x00, 0x00, 0x00, //0x60
 };
 
+// private variables ----------------------------------------------------------
 static uint8_t key_clk_state = 1;
 static uint8_t key_index = 0;
 static uint8_t key_index_waiting = 0;
@@ -108,7 +110,7 @@ static uint8_t key_reset = 0;
 static uint8_t key_reboot = 0;
 static uint8_t key_menu = 0;
 
-// Helper functions -----------------------------------------------------------
+// private functions ----------------------------------------------------------
 void key_clk_low(void)
 {
     gpio_put(KEY_SCK_PIN, 0);
@@ -200,7 +202,7 @@ uint8_t key_data_get(void)
     return key;
 }
 
-// Function Definitions -------------------------------------------------------
+// function definitions -------------------------------------------------------
 void key_init(void)
 {
     gpio_init(KEY_DATA_PIN);

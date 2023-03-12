@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  description: Scan keyboard matrix
+ *  description: Scan keyboard matrix and logic for deciding how to process
  *
  ******************************************************************************
  */
@@ -8,7 +8,7 @@
 #ifndef __KEY_H__
 #define __KEY_H__
 
-// Structs/Enums/Typedefs -----------------------------------------------------
+// structs/enums/typedefs -----------------------------------------------------
 typedef enum
 {
     KEY_MAIN_NULL = 0,
@@ -21,7 +21,7 @@ typedef enum
     KEY_OPERATIONS_TOTAL,
 } KeyOperation;
 
-// Function prototypes --------------------------------------------------------
+// function prototypes --------------------------------------------------------
 
 /**
  *  \brief      Initalize internal workings.
