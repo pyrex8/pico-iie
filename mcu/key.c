@@ -1,9 +1,11 @@
+// Includes -------------------------------------------------------------------
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include "key.h"
 #include "pico/stdlib.h"
 
+// Definitions ----------------------------------------------------------------
 #define KEY_DATA_PIN 18
 #define KEY_SCK_PIN 17
 #define KEY_MATRIX_MASK 0x7F
@@ -50,26 +52,6 @@
 
 #define KEY_SWITCH_CLOSED 0
 
-uint8_t key_clk_state = 1;
-uint8_t key_index = 0;
-uint8_t key_index_waiting = 0;
-uint8_t consecutive_presses = 0;
-uint8_t key_data[KEY_MATRIX_TOTAL] = {KEY_DATA_EMPTY};
-uint8_t key_pressed[KEY_MATRIX_TOTAL] = {KEY_PRESSED_FALSE};
-uint8_t key_used[KEY_MATRIX_TOTAL] = {KEY_USED_FALSE};
-uint8_t key_iie_offset = 0;
-
-static uint8_t key_shift = 0;
-static uint8_t key_ctrl_left = 0;
-static uint8_t key_ctrl_right = 0;
-static uint8_t key_caplock = 1;
-
-static uint8_t key_pause = 0;
-static uint8_t key_resume = 0;
-static uint8_t key_reset = 0;
-static uint8_t key_reboot = 0;
-static uint8_t key_menu = 0;
-
 static const uint8_t key_iie[KEY_MATRIX_VALID * 3] =
 {
 // Caps lock on (default on power up)
@@ -106,14 +88,27 @@ static const uint8_t key_iie[KEY_MATRIX_VALID * 3] =
    TAB,  'Q',  'W',  'E',  'R',  'T',  'Y',  'U',  'I',  'O',  'P',  '{',  '}', 0x00, 0x00, 0x00, //0x60
 };
 
-void key_init(void)
-{
-    gpio_init(KEY_DATA_PIN);
-    gpio_init(KEY_SCK_PIN);
-    gpio_set_dir(KEY_DATA_PIN, GPIO_IN);
-    gpio_set_dir(KEY_SCK_PIN, GPIO_OUT);
-}
+static uint8_t key_clk_state = 1;
+static uint8_t key_index = 0;
+static uint8_t key_index_waiting = 0;
+static uint8_t consecutive_presses = 0;
+static uint8_t key_data[KEY_MATRIX_TOTAL] = {KEY_DATA_EMPTY};
+static uint8_t key_pressed[KEY_MATRIX_TOTAL] = {KEY_PRESSED_FALSE};
+static uint8_t key_used[KEY_MATRIX_TOTAL] = {KEY_USED_FALSE};
+static uint8_t key_iie_offset = 0;
 
+static uint8_t key_shift = 0;
+static uint8_t key_ctrl_left = 0;
+static uint8_t key_ctrl_right = 0;
+static uint8_t key_caplock = 1;
+
+static uint8_t key_pause = 0;
+static uint8_t key_resume = 0;
+static uint8_t key_reset = 0;
+static uint8_t key_reboot = 0;
+static uint8_t key_menu = 0;
+
+// Helper functions -----------------------------------------------------------
 void key_clk_low(void)
 {
     gpio_put(KEY_SCK_PIN, 0);
@@ -171,6 +166,49 @@ void key_not_pressed(void)
     key_data[key_index] = KEY_DATA_EMPTY;
 }
 
+
+uint8_t key_data_waiting(void)
+{
+    if (key_used[key_index_waiting] == KEY_USED_FALSE)
+    {
+        return key_index_waiting;
+    }
+    return 0;
+}
+
+uint8_t key_data_get(void)
+{
+    uint8_t key = 0;
+
+    if (key_caplock)
+    {
+        key_iie_offset = KEY_OFFSET_CAPS_LOCK_ON;
+    }
+    else
+    {
+        key_iie_offset = KEY_OFFSET_CAPS_LOCK_OFF;
+    }
+
+    if (key_shift)
+    {
+        key_iie_offset = KEY_OFFSET_CAPS_SHIFT;
+    }
+
+    key = key_iie[key_index_waiting + key_iie_offset];
+    key_used[key_index_waiting] = KEY_USED_TRUE;
+    key_index_waiting = 0;
+    return key;
+}
+
+// Function Definitions -------------------------------------------------------
+void key_init(void)
+{
+    gpio_init(KEY_DATA_PIN);
+    gpio_init(KEY_SCK_PIN);
+    gpio_set_dir(KEY_DATA_PIN, GPIO_IN);
+    gpio_set_dir(KEY_SCK_PIN, GPIO_OUT);
+}
+
 void key_update(void)
 {
     key_clk_state ^= 1;
@@ -218,40 +256,7 @@ void key_update(void)
     index_update();
 }
 
-uint8_t key_data_waiting(void)
-{
-    if (key_used[key_index_waiting] == KEY_USED_FALSE)
-    {
-        return key_index_waiting;
-    }
-    return 0;
-}
-
-uint8_t key_data_get(void)
-{
-    uint8_t key = 0;
-
-    if (key_caplock)
-    {
-        key_iie_offset = KEY_OFFSET_CAPS_LOCK_ON;
-    }
-    else
-    {
-        key_iie_offset = KEY_OFFSET_CAPS_LOCK_OFF;
-    }
-
-    if (key_shift)
-    {
-        key_iie_offset = KEY_OFFSET_CAPS_SHIFT;
-    }
-
-    key = key_iie[key_index_waiting + key_iie_offset];
-    key_used[key_index_waiting] = KEY_USED_TRUE;
-    key_index_waiting = 0;
-    return key;
-}
-
-void key_operation_update(KeyOperation *operation, uint8_t *data)
+void key_operation_get(KeyOperation *operation, uint8_t *data)
 {
     *operation = KEY_MAIN_NULL;
     *data = 0;

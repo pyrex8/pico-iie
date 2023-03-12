@@ -46,13 +46,13 @@ static uint8_t operation_data;
 
 static const void (*main_key_operation[KEY_OPERATIONS_TOTAL]) (uint8_t data) =
 {
-    [KEY_MAIN_NULL]                = main_null,
-    [KEY_MAIN_PAUSE]               = main_pause,
-    [KEY_MAIN_RESUME]              = main_resume,
-    [KEY_MAIN_RESET]               = main_reset,
-    [KEY_MAIN_REBOOT]              = main_reboot,
-    [KEY_MAIN_MENU]                = main_menu,
-    [KEY_KEYBOARD_KEY]             = keyboard_key_code_set,
+    [KEY_MAIN_NULL]                 = main_null,
+    [KEY_MAIN_PAUSE]                = main_pause,
+    [KEY_MAIN_RESUME]               = main_resume,
+    [KEY_MAIN_RESET]                = main_reset,
+    [KEY_MAIN_REBOOT]               = main_reboot,
+    [KEY_MAIN_MENU]                 = main_menu,
+    [KEY_KEYBOARD_KEY]              = keyboard_key_code_set,
 };
 
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
@@ -182,7 +182,7 @@ int main(void)
 
             serial_state_send();
 
-            key_operation_update(&key_operation, &operation_data);
+            key_operation_get(&key_operation, &operation_data);
             (*main_key_operation[key_operation]) (operation_data);
         }
     }

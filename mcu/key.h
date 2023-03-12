@@ -1,6 +1,14 @@
+/******************************************************************************
+ *
+ *  description: Scan keyboard matrix
+ *
+ ******************************************************************************
+ */
+
 #ifndef __KEY_H__
 #define __KEY_H__
 
+// Structs/Enums/Typedefs -----------------------------------------------------
 typedef enum
 {
     KEY_MAIN_NULL = 0,
@@ -13,8 +21,23 @@ typedef enum
     KEY_OPERATIONS_TOTAL,
 } KeyOperation;
 
+// Function prototypes --------------------------------------------------------
+
+/**
+ *  \brief      Initalize internal workings.
+ */
 void key_init(void);
+
+/**
+ *  \brief      Advance clock and check for data from matrix
+ */
 void key_update(void);
-void key_operation_update(KeyOperation *operation, uint8_t *data);
+
+/**
+ *  \brief      Get key operation, if any action is required
+ *  \param[IN]  operation       return function pointer
+ *  \param[IN]  data            return data to pass to function
+ */
+void key_operation_get(KeyOperation *operation, uint8_t *data);
 
 #endif /* __KEY_H__ */
