@@ -9,6 +9,8 @@
 #define KEYS_MATRIX_MASK 0x7F
 #define KEYS_MATRIX_TOTAL (KEYS_MATRIX_MASK + 1)
 #define KEYS_MATRIX_VALID (KEYS_MATRIX_TOTAL - 0x10)
+#define KEYS_PRESSES__RESET 0
+#define KEYS_PRESSES_MAX 16
 
 // Apple IIe keyboard codes
 #define UP   0x0B
@@ -30,23 +32,27 @@
 #define KEYS_F2 0x42 // f2 = resume
 #define KEYS_F3 0x43 // shift + f3 = reset
 #define KEYS_F4 0x44 // shift + f4 = menu
-#define KEYS_F5 0x45 // ctrl + f5 = reboot
+#define KEYS_F5 0x45 // shift + f5 = reboot
 
 #define KEYS_OFFSET_CAPS_LOCK_ON  0x00
 #define KEYS_OFFSET_CAPS_LOCK_OFF 0x70
 #define KEYS_OFFSET_CAPS_SHIFT    0xE0
 
+#define KEYS_SHIFT_RIGHT_BIT (1<<0)
+#define KEYS_SHIFT_LEFT_BIT (1<<1)
+#define KEYS_PRESSED_TRUE 1
+#define KEYS_PRESSED_FALSE 0
+
 uint8_t keys_clk_state = 1;
 uint8_t keys_index = 0;
 uint8_t keys_waiting = 0;
-uint8_t keys_ones = 0;
+uint8_t consecutive_presses = 0;
 uint8_t keys_data[KEYS_MATRIX_TOTAL] = {0};
 uint8_t keys_pressed[KEYS_MATRIX_TOTAL] = {0};
 uint8_t keys_used[KEYS_MATRIX_TOTAL] = {0};
 uint8_t keys_iie_offset = 0;
 
-static uint8_t keys_shift_left = 0;
-static uint8_t keys_shift_right = 0;
+static uint8_t keys_shift = 0;
 static uint8_t keys_ctrl_left = 0;
 static uint8_t keys_ctrl_right = 0;
 static uint8_t keys_caplock = 1;
@@ -111,6 +117,53 @@ void keys_clk_high(void)
     gpio_put(KEYS_SCK_PIN, 1);
 }
 
+void index_update(void)
+{
+    bool end_of_scan = (consecutive_presses == KEYS_PRESSES_MAX? true : false);
+
+    if (end_of_scan)
+    {
+        keys_index = 0;
+    }
+    else
+    {
+        keys_index = (keys_index + 1) & KEYS_MATRIX_MASK;
+    }
+}
+
+void either_shift_key_down_test(void)
+{
+    if (keys_index == KEYS_SHIFT_LEFT)
+    {
+        keys_shift |= KEYS_SHIFT_LEFT_BIT;
+    }
+
+    if (keys_index == KEYS_SHIFT_RIGHT)
+    {
+        keys_shift |= KEYS_SHIFT_RIGHT_BIT;
+    }
+}
+
+void both_shift_keys_up_test(void)
+{
+    if (keys_index == KEYS_SHIFT_LEFT)
+    {
+        keys_shift &= ~KEYS_SHIFT_LEFT_BIT;
+    }
+
+    if (keys_index == KEYS_SHIFT_RIGHT)
+    {
+        keys_shift &= ~KEYS_SHIFT_RIGHT_BIT;
+    }
+}
+
+void key_not_pressed(void)
+{
+    keys_pressed[keys_index] = KEYS_PRESSED_FALSE;
+    keys_used[keys_index] = KEYS_PRESSED_FALSE;
+    keys_data[keys_index] = KEYS_PRESSED_FALSE;
+}
+
 void keys_update(void)
 {
     keys_clk_state ^= 1;
@@ -123,29 +176,13 @@ void keys_update(void)
     keys_clk_low();
 
     // 16 zeros in a row marks the end of the keyboard matrix scan
-    uint8_t key_test = gpio_get(KEYS_DATA_PIN) == 0? 1 : 0;
-    if (key_test)
+    uint8_t key_press = gpio_get(KEYS_DATA_PIN) == 0? 1 : 0;
+
+    if (key_press)
     {
-        keys_ones++;
+        consecutive_presses++;
 
-        if (keys_index == KEYS_SHIFT_LEFT)
-        {
-            keys_shift_left = 1;
-        }
-
-        if (keys_index == KEYS_SHIFT_RIGHT)
-        {
-            keys_shift_right = 1;
-        }
-
-        if (keys_index == KEYS_F1)
-        {
-            keys_pause = 1;
-        }
-        if (keys_index == KEYS_F2)
-        {
-            keys_resume = 1;
-        }
+        either_shift_key_down_test();
 
         if (keys_data[keys_index] == 0)
         {
@@ -155,42 +192,23 @@ void keys_update(void)
             }
             else
             {
-                keys_pressed[keys_index] = key_test;
+                keys_pressed[keys_index] = KEYS_PRESSED_TRUE;
                 if (keys_index < KEYS_MATRIX_VALID)
                 {
                     keys_waiting = keys_index;
                 }
             }
         }
-        keys_data[keys_index] = key_test;
+        keys_data[keys_index] = KEYS_PRESSED_TRUE;
     }
     else
     {
-        keys_ones = 0;
-
-        if (keys_index == KEYS_SHIFT_LEFT)
-        {
-            keys_shift_left = 0;
-        }
-
-        if (keys_index == KEYS_SHIFT_RIGHT)
-        {
-            keys_shift_right = 0;
-        }
-
-        keys_pressed[keys_index] = key_test;
-        keys_used[keys_index] = key_test;
-        keys_data[keys_index] = key_test;
+        consecutive_presses = KEYS_PRESSES__RESET;
+        both_shift_keys_up_test();
+        key_not_pressed();
     }
 
-    if (keys_ones == 16)
-    {
-        keys_index = 0;
-    }
-    else
-    {
-        keys_index = (keys_index + 1) & KEYS_MATRIX_MASK;
-    }
+    index_update();
 }
 
 uint8_t keys_data_waiting(void)
@@ -215,7 +233,7 @@ uint8_t keys_data_get(void)
         keys_iie_offset = KEYS_OFFSET_CAPS_LOCK_OFF;
     }
 
-    if (keys_shift_left || keys_shift_right)
+    if (keys_shift)
     {
         keys_iie_offset = KEYS_OFFSET_CAPS_SHIFT;
     }
@@ -242,6 +260,27 @@ void keys_operation_update(KeysOperation *operation, uint8_t *data)
     {
         keys_resume = 0;
         *operation = KEYS_MAIN_RESUME;
+        return;
+    }
+
+    if (keys_reset)
+    {
+        keys_reset = 0;
+        *operation = KEYS_MAIN_RESET;
+        return;
+    }
+
+    if (keys_menu)
+    {
+        keys_menu = 0;
+        *operation = KEYS_MAIN_MENU;
+        return;
+    }
+
+    if (keys_reboot)
+    {
+        keys_reboot = 0;
+        *operation = KEYS_MAIN_REBOOT;
         return;
     }
 
