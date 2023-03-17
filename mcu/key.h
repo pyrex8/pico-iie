@@ -40,4 +40,7 @@ void key_update(void);
  */
 void key_operation_get(KeyOperation *operation, uint8_t *data);
 
+uint8_t key_ls_nibble_get(void);
+uint8_t key_ms_nibble_get(void);
+
 #endif /* __KEY_H__ */

@@ -110,6 +110,13 @@ static uint8_t key_reset = 0;
 static uint8_t key_reboot = 0;
 static uint8_t key_menu = 0;
 
+static uint8_t key_debug = 0;
+static const uint8_t key_nibble[] =
+{
+    0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7,
+    0xB8, 0xB9, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86
+};
+
 // private functions ----------------------------------------------------------
 void key_clk_low(void)
 {
@@ -239,6 +246,7 @@ void key_update(void)
             }
             else
             {
+                key_debug = key_index;
                 key_pressed[key_index] = KEY_PRESSED_TRUE;
                 if (key_index < KEY_MATRIX_VALID)
                 {
@@ -303,4 +311,16 @@ void key_operation_get(KeyOperation *operation, uint8_t *data)
         *operation = KEY_KEYBOARD_KEY;
         *data = key_data_get();
     }
+}
+
+uint8_t key_ls_nibble_get(void)
+{
+    uint8_t nibble = key_debug & 0x0F;
+    return key_nibble[nibble];
+}
+
+uint8_t key_ms_nibble_get(void)
+{
+    uint8_t nibble = (key_debug >>4) & 0x0F;
+    return key_nibble[nibble];
 }
