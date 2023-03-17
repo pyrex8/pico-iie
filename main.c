@@ -184,15 +184,6 @@ int main(void)
 
             key_operation_get(&key_operation, &operation_data);
             (*main_key_operation[key_operation]) (operation_data);
-
-            uint8_t data = 0xB0;
-            ram_update(0, 0x400, &data);
-            data = 0xF8;
-            ram_update(0, 0x401, &data);
-            data = key_ms_nibble_get();
-            ram_update(0, 0x402, &data);
-            data = key_ls_nibble_get();
-            ram_update(0, 0x403, &data);
         }
     }
 }
