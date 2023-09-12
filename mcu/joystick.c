@@ -14,6 +14,7 @@
 #define JOYSTICK_Y_PIN 27
 
 #define JOYSTICK_PDL_CENTER 127
+#define JOYSTICK_PDL_FULL_COUNT 255
 
 #define JOYSTICK_ADC_FULL_COUNT 4096
 #define JOYSTICK_ADC_LOW (JOYSTICK_ADC_FULL_COUNT / 3)
@@ -44,54 +45,25 @@ void joystick_init(void)
     gpio_pull_up(JOYSTICK_LEFT_PIN);
     gpio_pull_up(JOYSTICK_RIGHT_PIN);
 
-#if 0
-    // TODO: add paddle support
     adc_init();
     gpio_set_dir(JOYSTICK_X_PIN, GPIO_IN);
     gpio_set_dir(JOYSTICK_Y_PIN, GPIO_IN);
     adc_gpio_init(JOYSTICK_X_PIN);
     adc_gpio_init(JOYSTICK_Y_PIN);
-#endif
+
 }
 
 void joystick_update(void)
 {
     joystick_btn0 = gpio_get(JOYSTICK_FIRE_PIN) ? 0 : 1;
 
-    joystick_pdl0 = JOYSTICK_PDL_CENTER;
-    joystick_pdl0 -= gpio_get(JOYSTICK_LEFT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
-    joystick_pdl0 += gpio_get(JOYSTICK_RIGHT_PIN) ? 0 : JOYSTICK_PDL_CENTER;
-
-    joystick_pdl1 = JOYSTICK_PDL_CENTER;
-    joystick_pdl1 -= gpio_get(JOYSTICK_UP_PIN) ? 0 : JOYSTICK_PDL_CENTER;
-    joystick_pdl1 += gpio_get(JOYSTICK_DOWN_PIN) ? 0 : JOYSTICK_PDL_CENTER;
-
-#if 0
-    // TODO: add paddle support
-    adc_select_input(0);
+    adc_select_input(2);
     uint16_t joy_x = adc_read();
     adc_select_input(1);
     uint16_t joy_y = adc_read();
 
-    joystick_pdl0 = 128;
-    if (joy_x < JOYSTICK_ADC_LOW)
-    {
-        joystick_pdl0 = 0;
-    }
-    else if (joy_x < JOYSTICK_ADC_HIGH)
-    {
-        joystick_pdl0 = 255;
-    }
-    joystick_pdl1 = 128;
-    if (joy_y < JOYSTICK_ADC_LOW)
-    {
-        joystick_pdl1 = 0;
-    }
-    else if (joy_y < JOYSTICK_ADC_HIGH)
-    {
-        joystick_pdl1 = 255;
-    }
-#endif
+    joystick_pdl0 = JOYSTICK_PDL_FULL_COUNT - joy_x>>4;
+    joystick_pdl1 = JOYSTICK_PDL_FULL_COUNT - joy_y>>4;
 }
 
 uint8_t joystick_btn0_get(void)

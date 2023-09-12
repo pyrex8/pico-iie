@@ -16,6 +16,7 @@
 #include "main.h"
 
 #include "mcu/clock.h"
+#include "mcu/test.h"
 #include "mcu/joystick.h"
 #include "mcu/key.h"
 #include "mcu/serial.h"
@@ -137,6 +138,7 @@ void main_core1(void)
 int main(void)
 {
     clock_init();
+    test_pin_init();
     serial_init();
     joystick_init();
     key_init();
@@ -149,7 +151,9 @@ int main(void)
 
     while (1)
     {
+        
         vga_wait_for_new_overscan_line();
+        
 
         scan_line = vga_scan_line_get();
         video_scan_line_set(scan_line);
@@ -174,16 +178,20 @@ int main(void)
 
         if (vga_scan_line_get() == 0)
         {
+            test_pin_high();
             joystick_update();
             game_btn0_set(joystick_btn0_get());
             game_btn1_set(joystick_btn1_get());
             game_pdl0_set(joystick_pdl0_get());
             game_pdl1_set(joystick_pdl1_get());
+            
 
             serial_state_send();
 
             key_operation_get(&key_operation, &operation_data);
             (*main_key_operation[key_operation]) (operation_data);
+            test_pin_low();
         }
+        
     }
 }
