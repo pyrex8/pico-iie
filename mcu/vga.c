@@ -65,8 +65,8 @@
 #define VIDEO_SCAN_BUFFER_LEN ((VGA_H_BACK_PORCH + VGA_H_VISIBLE_AREA) / 2 + 1)
 #define VIDEO_SCAN_LINE_LEN (VGA_H_WHOLE_LINE / 2)
 
-const uint VSYNC_PIN = 2;
-const uint HSYNC_PIN = 4;
+const uint VSYNC_PIN = 4;
+const uint HSYNC_PIN = 2;
 const uint PCLK_PIN = 6;
 const uint R0_PIN = 7;
 
