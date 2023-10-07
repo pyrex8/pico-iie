@@ -72,6 +72,9 @@ void ps2_init(void)
 {
     gpio_set_dir(PS2_DATA_PIN, GPIO_IN);
     gpio_set_dir(PS2_SCK_PIN, GPIO_IN);
+
+    gpio_pull_up(PS2_DATA_PIN);
+    gpio_pull_up(PS2_SCK_PIN);
 }
 
 void ps2_update(void)
