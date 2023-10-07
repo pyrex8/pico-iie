@@ -59,10 +59,10 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
 static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
 {
     [PS2_MAIN_NULL]                 = main_null,
-    [PS2_MAIN_REBOOT]               = main_reboot,
-    [PS2_MAIN_RESET]                = main_reset,
     [PS2_MAIN_PAUSE]                = main_pause,
     [PS2_MAIN_RESUME]               = main_resume,
+    [PS2_MAIN_RESET]                = main_reset,
+    [PS2_MAIN_REBOOT]               = main_reboot,
 };
 
 void main_init(void)

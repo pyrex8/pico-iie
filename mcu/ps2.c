@@ -149,6 +149,11 @@ void ps2_update(void)
                                 ps2_operation = PS2_MAIN_RESET;
                             }
 
+                            if(ps2_data == PS2_F10_KEY)
+                            {
+                                ps2_operation = PS2_MAIN_REBOOT;
+                            }
+
                             if(ps2_shift)
                             {
                                 key_code = keymap_iie_shift[ps2_data];
