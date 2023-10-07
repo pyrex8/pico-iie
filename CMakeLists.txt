@@ -13,7 +13,7 @@ add_executable(pico-iie
     mcu/clock.c
     mcu/test.c
     mcu/joystick.c
-    mcu/key.c
+    mcu/ps2.c
     mcu/serial.c
     mcu/speaker.c
     mcu/vga.c

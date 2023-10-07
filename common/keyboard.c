@@ -37,7 +37,7 @@ void keyboard_update(uint8_t read, uint16_t address, uint8_t *byte)
 
 void keyboard_key_code_set(uint8_t key_code)
 {
-    if (key_code > 0 && key_code < 128)
+    // if (key_code > 0 && key_code < 128)
     {
         mem_key_waiting = true;
         mem_key_code = key_code;
