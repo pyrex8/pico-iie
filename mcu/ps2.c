@@ -141,6 +141,11 @@ void ps2_update(void)
 
                             if(ps2_data == PS2_F2_KEY)
                             {
+                                ps2_operation = PS2_MAIN_RESUME;
+                            }
+
+                            if(ps2_data == PS2_F3_KEY)
+                            {
                                 ps2_operation = PS2_MAIN_RESET;
                             }
 

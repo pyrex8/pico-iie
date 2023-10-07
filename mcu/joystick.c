@@ -5,10 +5,13 @@
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
 
-#define JOYSTICK_SW1_PIN 22
-#define JOYSTICK_SW0_PIN 26
-#define JOYSTICK_X_PIN 28
-#define JOYSTICK_Y_PIN 27
+#define JOYSTICK_SW0_PIN 22
+#define JOYSTICK_SW1_PIN 21
+#define JOYSTICK_X_PIN 27
+#define JOYSTICK_Y_PIN 26
+#define JOYSTICK_X_ADC 1
+#define JOYSTICK_Y_ADC 0
+
 
 #define JOYSTICK_PDL_FULL_COUNT 255
 
@@ -40,9 +43,9 @@ void joystick_update(void)
     joystick_btn0 = gpio_get(JOYSTICK_SW0_PIN) ? 1 : 0;
     joystick_btn1 = gpio_get(JOYSTICK_SW1_PIN) ? 1 : 0;
 
-    adc_select_input(2);
+    adc_select_input(JOYSTICK_X_ADC);
     uint16_t joy_x = adc_read();
-    adc_select_input(1);
+    adc_select_input(JOYSTICK_Y_ADC);
     uint16_t joy_y = adc_read();
 
     joystick_pdl0 = JOYSTICK_PDL_FULL_COUNT - (joy_x>>4);
