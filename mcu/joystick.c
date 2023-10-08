@@ -12,8 +12,13 @@
 #define JOYSTICK_X_ADC 1
 #define JOYSTICK_Y_ADC 0
 
+#define JOYSTICK_ADC_FULL_COUNT 4095
+#define JOYSTICK_ADC_ONE_THIRD_COUNT (JOYSTICK_ADC_FULL_COUNT / 3)
 
 #define JOYSTICK_PDL_FULL_COUNT 255
+#define JOYSTICK_PDL_HALF_COUNT (JOYSTICK_PDL_FULL_COUNT >> 1)
+
+#define JOYSTICK_HALF_COUNT (JOYSTICK_ADC_FULL_COUNT * JOYSTICK_PDL_HALF_COUNT)
 
 static uint8_t joystick_btn0 = 0;
 static uint8_t joystick_btn1 = 0;
@@ -48,8 +53,18 @@ void joystick_update(void)
     adc_select_input(JOYSTICK_Y_ADC);
     uint16_t joy_y = adc_read();
 
-    joystick_pdl0 = JOYSTICK_PDL_FULL_COUNT - (joy_x>>4);
-    joystick_pdl1 = JOYSTICK_PDL_FULL_COUNT - (joy_y>>4);
+    joystick_pdl0 = JOYSTICK_PDL_FULL_COUNT;
+    joystick_pdl1 = JOYSTICK_PDL_FULL_COUNT;
+
+    if (joy_x > JOYSTICK_ADC_ONE_THIRD_COUNT)
+    {
+        joystick_pdl0 = JOYSTICK_HALF_COUNT / joy_x - JOYSTICK_PDL_HALF_COUNT;
+    }
+
+    if (joy_y > JOYSTICK_ADC_ONE_THIRD_COUNT)
+    {
+        joystick_pdl1 = JOYSTICK_HALF_COUNT / joy_y - JOYSTICK_PDL_HALF_COUNT;
+    }
 }
 
 uint8_t joystick_btn0_get(void)
