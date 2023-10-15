@@ -36,9 +36,14 @@ void ram_update(uint8_t read, uint16_t address, uint8_t *byte)
 }
 
 
-void ram_data_get(uint8_t length, uint16_t address, uint8_t *data)
+void ram_data_get(uint16_t length, uint16_t address, uint8_t *data)
 {
     memcpy(data, &memory_ram[address], length);
+}
+
+void ram_data_set(uint16_t length, uint16_t address, uint8_t *data)
+{
+    memcpy(&memory_ram[address], data, length);
 }
 
 void ram_all_get(uint8_t *buffer)

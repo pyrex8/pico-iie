@@ -19,6 +19,7 @@
 #include "mcu/test.h"
 #include "mcu/joystick.h"
 #include "mcu/ps2.h"
+#include "mcu/menu.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
 #include "mcu/vga.h"
@@ -37,6 +38,8 @@ static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 static uint16_t video_address = 0x2000;
 static bool reset = false;
 static uint8_t running = 1;
+static uint8_t menu = 0;
+static uint8_t menu_data[MENU_CHARACTERS_SIZE];
 static uint16_t scan_line;
 static int16_t overscan_line;
 static uint8_t overscan_line_odd;
@@ -62,6 +65,7 @@ static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
     [PS2_MAIN_PAUSE]                = main_pause,
     [PS2_MAIN_RESUME]               = main_resume,
     [PS2_MAIN_RESET]                = main_reset,
+    [PS2_MAIN_MENU]                 = main_menu,
     [PS2_MAIN_REBOOT]               = main_reboot,
 };
 
@@ -73,6 +77,7 @@ void main_init(void)
     c6502_init();
     speaker_init();
     ps2_init();
+    menu_init();
 }
 
 void main_null(uint8_t unused)
@@ -88,6 +93,7 @@ void main_reboot(uint8_t unused)
 void main_reset(uint8_t unused)
 {
     reset = true;
+    menu = 0;
 }
 
 void main_pause(uint8_t unused)
@@ -102,6 +108,9 @@ void main_resume(uint8_t unused)
 
 void main_menu(uint8_t unused)
 {
+    menu = 1;
+    menu_data_get(menu_data);
+    ram_data_set(MENU_CHARACTERS_SIZE, 0x0400, menu_data);
 }
 
 void main_start_bin(uint8_t unused)
@@ -191,6 +200,11 @@ int main(void)
             game_pdl1_set(joystick_pdl1_get());
             
             serial_state_send();
+
+            if (menu == 1)
+            {
+                menu_update();
+            }
 
             test_pin_low();
         }

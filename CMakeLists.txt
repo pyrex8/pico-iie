@@ -14,6 +14,7 @@ add_executable(pico-iie
     mcu/test.c
     mcu/joystick.c
     mcu/ps2.c
+    mcu/menu.c
     mcu/serial.c
     mcu/speaker.c
     mcu/vga.c

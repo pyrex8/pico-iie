@@ -20,6 +20,7 @@
 #define PS2_F1_KEY 0x05
 #define PS2_F2_KEY 0x06
 #define PS2_F3_KEY 0x04
+#define PS2_F6_KEY 0x0B
 #define PS2_F10_KEY 0x09
 
 #define A2E_UP_KEY 0x0B
@@ -147,6 +148,11 @@ void ps2_update(void)
                             if(ps2_data == PS2_F3_KEY)
                             {
                                 ps2_operation = PS2_MAIN_RESET;
+                            }
+
+                            if(ps2_data == PS2_F6_KEY)
+                            {
+                                ps2_operation = PS2_MAIN_MENU;
                             }
 
                             if(ps2_data == PS2_F10_KEY)

@@ -7,6 +7,7 @@ typedef enum
     PS2_MAIN_PAUSE,
     PS2_MAIN_RESUME,
     PS2_MAIN_RESET,
+    PS2_MAIN_MENU,
     PS2_MAIN_REBOOT,
     PS2_OPERATIONS_TOTAL,
 } Ps2Operation;
