@@ -1,9 +1,7 @@
 #ifndef __MENU_H__
 #define __MENU_H__
 
-#define MENU_CHARACTERS_X 40
-#define MENU_CHARACTERS_Y 20
-#define MENU_CHARACTERS_SIZE (MENU_CHARACTERS_Y * MENU_CHARACTERS_X)
+#define MENU_CHARACTERS_SIZE 0x400
 
 void menu_init(void);
 void menu_update(void);

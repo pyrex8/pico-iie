@@ -70,6 +70,12 @@ void ram_bin_addr_msb(uint8_t data)
     location_start = location;
 }
 
+void ram_bin_addr_set(uint16_t address)
+{
+    location = address;
+    location_start = location;
+}
+
 uint16_t ram_bin_addr_get(void)
 {
     return location_start;

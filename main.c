@@ -109,6 +109,10 @@ void main_resume(uint8_t unused)
 void main_menu(uint8_t unused)
 {
     menu = 1;
+    ram_bin_addr_set(36);
+    ram_bin_data_set(0);
+
+
     menu_data_get(menu_data);
     ram_data_set(MENU_CHARACTERS_SIZE, 0x0400, menu_data);
 }
