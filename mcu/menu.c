@@ -4,7 +4,10 @@
 #include <string.h>
 #include "menu.h"
 #include "hardware/flash.h"
+#include "hardware/sync.h"
 #include "pico/stdlib.h"
+
+#define FLASH_TARGET_OFFSET (512 * 1024) // choosing to start at 512K
 
 static uint8_t menu[MENU_CHARACTERS_SIZE];
 const static uint8_t menu_select[] = 
@@ -20,6 +23,27 @@ const static uint16_t line[] =
     0x050, 0x0D0, 0x150, 0x1D0, 0x250, 0x2D0, 0x350, 0x3D0,
 };
 
+const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+static uint8_t flash_data[40];
+
+void flash_data_save()
+{
+    int flash_dataSize = sizeof(flash_data);
+
+    int writeSize = (flash_dataSize / FLASH_PAGE_SIZE) + 1;
+    int sectorCount = ((writeSize * FLASH_PAGE_SIZE) / FLASH_SECTOR_SIZE) + 1;
+    uint32_t interrupts = save_and_disable_interrupts();
+
+    flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE * sectorCount);
+    flash_range_program(FLASH_TARGET_OFFSET, flash_data, FLASH_PAGE_SIZE * writeSize);
+    restore_interrupts(interrupts);
+}
+
+void flash_data_read()
+{
+    memcpy(&flash_data, flash_target_contents, sizeof(flash_data));
+}
+
 void menu_init(void)
 {
     memset(menu, '.' + 128, MENU_CHARACTERS_SIZE);
@@ -29,6 +53,15 @@ void menu_init(void)
         menu[line[i] + 1] = menu_select[i] + 128;
         menu[line[i] + 2] = ' ' + 128;
     }
+
+    flash_data[0] = 'b' + 128;
+
+    // flash_data_save();
+   flash_data_read();
+
+    menu[line[0] + 3] = flash_data[0];
+    menu[line[0] + 4] = flash_data[1];
+    menu[line[0] + 5] = flash_data[2];
 }
 
 void menu_update(void)
