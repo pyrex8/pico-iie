@@ -17,6 +17,8 @@ SERIAL_SIZE_MSB = 0x84
 SERIAL_ADDR_LSB = 0x85
 SERIAL_ADDR_MSB = 0x86
 SERIAL_REBOOT = 0x87
+SERIAL_BANK = 0x88
+SERIAL_NAME = 0x89
 
 BAUDRATE = 115200
 COM_PORT = '/dev/ttyUSB0'
@@ -30,6 +32,8 @@ ser.flush()
 try:
     arg_name = str(sys.argv[1])
     file_ext = arg_name[-3:]
+    arg_bank = str(sys.argv[2])[0:1]
+    print("bank", arg_bank)
     if  file_ext == 'bin':
         bin_name = arg_name
 except:
@@ -55,6 +59,11 @@ if bin_name != "":
     result = bin_name.index('.')
     bin_address_lsb = int(bin_name[result - 2: result], 16)
     bin_address_msb = int(bin_name[result - 4: result - 2], 16)
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_BANK)
+    bin_cmd.append(ord(arg_bank))
+    ser.write(bin_cmd)
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_SIZE_LSB)

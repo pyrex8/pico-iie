@@ -6,5 +6,6 @@
 void menu_init(void);
 void menu_update(void);
 void menu_data_get(uint8_t *data);
+void menu_bank_set(uint8_t data);
 
 #endif /* __MENU_H__ */
