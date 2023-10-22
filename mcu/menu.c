@@ -25,7 +25,7 @@ const static uint16_t line[] =
 
 const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
 static uint8_t flash_data[40];
-static uint8_t menu_bank = '0';
+static uint8_t menu_bank = 0;
 static uint8_t menu_file_name;
 
 void flash_data_save()
@@ -65,7 +65,7 @@ void menu_init(void)
     menu[line[0] + 4] = flash_data[1];
     menu[line[0] + 5] = flash_data[2];
 
-    menu[line[23] + 3] = menu_bank + 128;
+    menu[line[23] + 3] = menu_select[menu_bank] + 128;
 }
 
 void menu_update(void)

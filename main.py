@@ -40,6 +40,8 @@ try:
     file_ext = arg_name[-3:]
     arg_bank = str(sys.argv[2])[0:1]
     bank = banks.find(arg_bank)
+    if bank < 0:
+        bank = 0
     print("bank:", bank)
     if  file_ext == 'bin':
         bin_name = arg_name

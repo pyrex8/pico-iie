@@ -54,7 +54,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else
             {
                 bin_data_counter++;
-                *operation = SERIAL_NAME_DATA;
+                *operation = SERIAL_RAM_BIN_DATA;
             }
         }
         else if(serial_loader == SERIAL_NAME)
@@ -68,7 +68,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else
             {
                 name_data_counter++;
-                *operation = SERIAL_RAM_BIN_DATA;
+                *operation = SERIAL_NAME_DATA;
             }
         }
         else if(serial_loader == SERIAL_BANK)
