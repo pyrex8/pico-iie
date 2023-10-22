@@ -58,6 +58,7 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_RAM_BIN_ADDR_MSB]       = ram_bin_addr_msb,
     [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
     [SERIAL_MENU_BANK]              = menu_bank_set,
+    [SERIAL_NAME_DATA]              = menu_name_set,
 };
 
 static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =

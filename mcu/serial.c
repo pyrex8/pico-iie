@@ -2,6 +2,8 @@
 #include "serial.h"
 #include "pico/stdlib.h"
 
+#define SERIAL_NAME_LENGTH 24
+
 typedef enum
 {
     SERIAL_READY = 0x81,
@@ -18,6 +20,7 @@ typedef enum
 static SerialMode serial_loader = SERIAL_READY;
 static uint16_t bin_data_length = 0;
 static uint16_t bin_data_counter = 0;
+static uint16_t name_data_counter = 0;
 
 static uint8_t game_x = 0;
 static uint8_t game_y = 0;
@@ -42,7 +45,6 @@ void serial_update(SerialOperation *operation, uint8_t *data)
 
         if(serial_loader == SERIAL_BIN)
         {
-            // 48k = 0xC000
             if (bin_data_counter >= bin_data_length)
             {
                 serial_loader = SERIAL_READY;
@@ -52,6 +54,20 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else
             {
                 bin_data_counter++;
+                *operation = SERIAL_NAME_DATA;
+            }
+        }
+        else if(serial_loader == SERIAL_NAME)
+        {
+            if (name_data_counter >= SERIAL_NAME_LENGTH)
+            {
+                serial_loader = SERIAL_READY;
+                name_data_counter = 0;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else
+            {
+                name_data_counter++;
                 *operation = SERIAL_RAM_BIN_DATA;
             }
         }

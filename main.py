@@ -10,6 +10,9 @@ import sys
 import serial
 
 bin_name = ""
+banks = "0123456789ABCDEFGHIJKLMN"
+bank = 0
+file_name = "                        "
 
 SERIAL_BIN_DATA = 0x82
 SERIAL_SIZE_LSB = 0x83
@@ -19,6 +22,8 @@ SERIAL_ADDR_MSB = 0x86
 SERIAL_REBOOT = 0x87
 SERIAL_BANK = 0x88
 SERIAL_NAME = 0x89
+
+FILE_NAME_LENGTH = 24
 
 BAUDRATE = 115200
 COM_PORT = '/dev/ttyUSB0'
@@ -31,11 +36,14 @@ ser.flush()
 
 try:
     arg_name = str(sys.argv[1])
+    file_name = arg_name[:-9] + file_name
     file_ext = arg_name[-3:]
     arg_bank = str(sys.argv[2])[0:1]
-    print("bank", arg_bank)
+    bank = banks.find(arg_bank)
+    print("bank:", bank)
     if  file_ext == 'bin':
         bin_name = arg_name
+    print ("file name:", file_name)
 except:
     pass
 
@@ -62,7 +70,13 @@ if bin_name != "":
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_BANK)
-    bin_cmd.append(ord(arg_bank))
+    bin_cmd.append(bank)
+    ser.write(bin_cmd)
+
+    bin_cmd = bytearray()
+    bin_cmd.append(SERIAL_NAME)
+    for i in range(FILE_NAME_LENGTH):
+        bin_cmd.append(ord(file_name[i]))
     ser.write(bin_cmd)
 
     bin_cmd = bytearray()
