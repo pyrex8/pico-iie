@@ -2,7 +2,7 @@
 #include "serial.h"
 #include "pico/stdlib.h"
 
-#define SERIAL_NAME_LENGTH 24
+#define SERIAL_NAME_LENGTH 27
 
 typedef enum
 {
