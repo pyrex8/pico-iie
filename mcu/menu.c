@@ -28,9 +28,6 @@
 
 #define FLASH_TARGET_OFFSET (512 * 1024) // choosing to start at 512K
 
-
-
-
 static uint8_t menu[MENU_CHARACTERS_SIZE];
 const static uint8_t menu_select[MENU_BANKS_TOTAL] = 
 {
@@ -45,37 +42,42 @@ const static uint16_t line[] =
     0x050, 0x0D0, 0x150, 0x1D0, 0x250, 0x2D0, 0x350, 0x3D0,
 };
 
-static uint8_t flash_data[40];
 static uint8_t menu_bank = 0;
 static uint8_t menu_file_name;
 
-union menu_page
+struct __attribute__((__packed__)) storage
 {
-   uint8_t flash_data[MENU_PAGE_LENGTH];
-   struct __attribute__((__packed__)) menu
-   {
+    struct __attribute__((__packed__)) menu 
+    {
         uint8_t bank;
         uint8_t name[MENU_NAME_LENGTH];
         uint16_t file_size;
-        uint16_t bin_address;
-        uint8_t bin_data[MENU_BIN_LENGTH];
-   } menu;
-} menu_page;
+        uint16_t address;
+    } menu;
+    uint8_t binary[MENU_BIN_LENGTH];
+} storage;
 
 
 void flash_data_save()
 {
-    const uint8_t *data = (const uint8_t *) &menu_page.flash_data;
+    const uint8_t *data = (const uint8_t *) &storage;
     uint32_t interrupts = save_and_disable_interrupts();
     flash_range_erase(FLASH_TARGET_OFFSET, FLASH_ERASE_SIZE);
     flash_range_program(FLASH_TARGET_OFFSET, data, FLASH_PROGRAM_SIZE);
     restore_interrupts(interrupts);
 }
 
+void flash_menu_read(uint8_t bank)
+{
+    const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+    memcpy(&storage, flash_target_contents, MENU_PAGE_LENGTH);
+}
+
+
 void flash_data_read()
 {
     const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
-    memcpy(&menu_page.flash_data, flash_target_contents, MENU_PAGE_LENGTH);
+    memcpy(&storage, flash_target_contents, MENU_PAGE_LENGTH);
 }
 
 void menu_str_print(uint8_t *str, uint8_t x, uint8_t y)
@@ -102,25 +104,14 @@ void menu_init(void)
         menu[line[i] + MENU_BANK_NUMBER_COLUMN] = menu_select[i] + MENU_CHARACTER_OFFSET;
     }
 
-    flash_data[0] = 'b' + MENU_CHARACTER_OFFSET;
-
-    // flash_data_save();
-   flash_data_read();
-
-    menu[line[0] + 3] = flash_data[0];
-    menu[line[0] + 4] = flash_data[1];
-    menu[line[0] + 5] = flash_data[2];
-
-    menu[line[23] + 3] = menu_select[menu_bank] + MENU_CHARACTER_OFFSET;
-
     uint16_t value = FLASH_SECTOR_SIZE;
     menu_hex_print(value, 10, 10);
 
     uint8_t name[] = "FILE_NAME                    ";
-    memcpy(menu_page.menu.name, name, MENU_NAME_LENGTH);
-    menu_str_print(menu_page.menu.name, MENU_FILE_NAME_COLUMN, 1);
-    menu_hex_print(menu_page.menu.file_size, MENU_FILE_SIZE_COLUMN, 1);
-    menu_hex_print(menu_page.menu.bin_address, MENU_BIN_ADDRESS_COLUMN, 1);
+    memcpy(storage.menu.name, name, MENU_NAME_LENGTH);
+    menu_str_print(storage.menu.name, MENU_FILE_NAME_COLUMN, 0);
+    menu_hex_print(storage.menu.file_size, MENU_FILE_SIZE_COLUMN, 0);
+    menu_hex_print(storage.menu.address, MENU_BIN_ADDRESS_COLUMN, 0);
 }
 
 void menu_update(void)
@@ -135,7 +126,7 @@ void menu_data_get(uint8_t *data)
 
 void menu_bank_set(uint8_t data)
 {
-    menu_page.menu.bank = data;
+    storage.menu.bank = data;
 }
 
 void menu_name_set(uint8_t data)
