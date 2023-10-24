@@ -23,10 +23,12 @@
 // FLASH_SECTOR_SIZE 0x1000
 #define FLASH_WRITE_SIZE ((MENU_PAGE_LENGTH / FLASH_PAGE_SIZE) + 1) // 0xC1
 #define FLASH_SECTOR_COUNT (((FLASH_WRITE_SIZE * FLASH_PAGE_SIZE) / FLASH_SECTOR_SIZE) + 1) // 0x0D
-#define FLASH_ERASE_SIZE (FLASH_SECTOR_SIZE * FLASH_SECTOR_COUNT) // 0xD000
+#define FLASH_BANK_SIZE (FLASH_SECTOR_SIZE * FLASH_SECTOR_COUNT) // 0xD000
 #define FLASH_PROGRAM_SIZE (FLASH_PAGE_SIZE * FLASH_WRITE_SIZE) // 0xC100
 
+// 0xD000 x 24 = 1277952, 1277952 / 1024 = 1248k
 #define FLASH_TARGET_OFFSET (512 * 1024) // choosing to start at 512K
+#define FLASH_TARGET_BASE (XIP_BASE + FLASH_TARGET_OFFSET)
 
 static uint8_t menu[MENU_CHARACTERS_SIZE];
 const static uint8_t menu_select[MENU_BANKS_TOTAL] = 
@@ -58,25 +60,26 @@ struct __attribute__((__packed__)) storage
 } storage;
 
 
-void flash_data_save()
+void flash_data_save(uint8_t bank)
 {
     const uint8_t *data = (const uint8_t *) &storage;
+    uint32_t flash_offset = FLASH_TARGET_OFFSET + bank * FLASH_BANK_SIZE;
     uint32_t interrupts = save_and_disable_interrupts();
-    flash_range_erase(FLASH_TARGET_OFFSET, FLASH_ERASE_SIZE);
-    flash_range_program(FLASH_TARGET_OFFSET, data, FLASH_PROGRAM_SIZE);
+    flash_range_erase(flash_offset, FLASH_BANK_SIZE);
+    flash_range_program(flash_offset, data, FLASH_PROGRAM_SIZE);
     restore_interrupts(interrupts);
 }
 
 void flash_menu_read(uint8_t bank)
 {
-    const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
-    memcpy(&storage, flash_target_contents, MENU_PAGE_LENGTH);
+    const uint8_t* flash_target_contents = (const uint8_t *) (FLASH_TARGET_BASE + bank * FLASH_BANK_SIZE);
+    memcpy(&storage.menu, flash_target_contents, MENU_PAGE_LENGTH);
 }
 
 
-void flash_data_read()
+void flash_data_read(uint8_t bank)
 {
-    const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+    const uint8_t* flash_target_contents = (const uint8_t *) (FLASH_TARGET_BASE + bank * FLASH_BANK_SIZE);
     memcpy(&storage, flash_target_contents, MENU_PAGE_LENGTH);
 }
 
@@ -84,6 +87,10 @@ void menu_str_print(uint8_t *str, uint8_t x, uint8_t y)
 {
     for (int i = 0; i < MENU_NAME_LENGTH; i++)
     {
+        if (str[i] >= MENU_CHARACTER_OFFSET)
+        {
+            str[i] = '.';
+        }
         menu[line[y] + x + i] = str[i] + MENU_CHARACTER_OFFSET;
     }
 }
@@ -101,7 +108,11 @@ void menu_init(void)
     memset(menu, ' ' + MENU_CHARACTER_OFFSET, MENU_CHARACTERS_SIZE);
     for (int i = 0; i < sizeof(menu_select); i++)
     {
+        flash_menu_read(i);
         menu[line[i] + MENU_BANK_NUMBER_COLUMN] = menu_select[i] + MENU_CHARACTER_OFFSET;
+        menu_str_print(storage.menu.name, MENU_FILE_NAME_COLUMN, i);
+        menu_hex_print(storage.menu.file_size, MENU_FILE_SIZE_COLUMN, i);
+        menu_hex_print(storage.menu.address, MENU_BIN_ADDRESS_COLUMN, i);
     }
 
     uint16_t value = FLASH_SECTOR_SIZE;
