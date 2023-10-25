@@ -54,9 +54,11 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_MAIN_REBOOT]            = main_reboot,
     [SERIAL_MAIN_START_BIN]         = main_start_bin,
     [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
-    [SERIAL_RAM_BIN_ADDR_LSB]       = ram_bin_addr_lsb,
-    [SERIAL_RAM_BIN_ADDR_MSB]       = ram_bin_addr_msb,
-    [SERIAL_RAM_BIN_DATA]           = ram_bin_data_set,
+    [SERIAL_RAM_BIN_SIZE_LSB]       = menu_bin_size_lsb,
+    [SERIAL_RAM_BIN_SIZE_MSB]       = menu_bin_size_msb,
+    [SERIAL_RAM_BIN_ADDR_LSB]       = main_bin_addr_lsb,
+    [SERIAL_RAM_BIN_ADDR_MSB]       = main_bin_addr_msb,
+    [SERIAL_RAM_BIN_DATA]           = main_bin_data_set,
     [SERIAL_MENU_BANK]              = menu_bank_set,
     [SERIAL_NAME_DATA]              = menu_name_set,
 };
@@ -95,7 +97,6 @@ void main_reboot(uint8_t unused)
 void main_reset(uint8_t unused)
 {
     reset = true;
-    menu = 0;
 }
 
 void main_pause(uint8_t unused)
@@ -108,19 +109,35 @@ void main_resume(uint8_t unused)
     running = 1;
 }
 
+void main_bin_addr_lsb(uint8_t data)
+{
+    menu_bin_addr_lsb(data);
+    ram_bin_addr_lsb(data);
+}
+
+void main_bin_addr_msb(uint8_t data)
+{
+    menu_bin_addr_msb(data);
+    ram_bin_addr_msb(data);
+}
+
+void main_bin_data_set(uint8_t data)
+{
+    menu_bin_data_set(data);
+    ram_bin_data_set(data);
+}
+
 void main_menu(uint8_t unused)
 {
-    menu = 1;
     ram_bin_addr_set(36);
     ram_bin_data_set(0);
-
-
     menu_data_get(menu_data);
     ram_data_set(MENU_CHARACTERS_SIZE, 0x0400, menu_data);
 }
 
 void main_start_bin(uint8_t unused)
 {
+    menu_bin_store();
     rom_reset_vector_write(ram_bin_addr_get());
     main_reset(0);
 }
@@ -165,10 +182,8 @@ int main(void)
 
     while (1)
     {
-        
         vga_wait_for_new_overscan_line();
         
-
         scan_line = vga_scan_line_get();
         video_scan_line_set(scan_line);
         overscan_line_odd = vga_overscan_line_is_odd();
@@ -206,11 +221,6 @@ int main(void)
             game_pdl1_set(joystick_pdl1_get());
             
             serial_state_send();
-
-            if (menu == 1)
-            {
-                menu_update();
-            }
 
             test_pin_low();
         }

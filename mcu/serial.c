@@ -81,7 +81,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             serial_loader = SERIAL_READY;
             bin_data_length &= 0xFF00;
             bin_data_length |= serial_byte;
-            *operation = SERIAL_MAIN_NULL;
+            *operation = SERIAL_RAM_BIN_SIZE_LSB;
             bin_data_counter = 0;
         }
         else if(serial_loader == SERIAL_SIZE_MSB)
@@ -89,7 +89,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             serial_loader = SERIAL_READY;
             bin_data_length &= 0x00FF;
             bin_data_length |= (((uint16_t)serial_byte) << 8);
-            *operation = SERIAL_MAIN_NULL;
+            *operation = SERIAL_RAM_BIN_SIZE_MSB;
             bin_data_counter = 0;
         }
         else if(serial_loader == SERIAL_ADDR_LSB)
@@ -128,6 +128,16 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else if(serial_byte == SERIAL_ADDR_MSB)
             {
                 serial_loader = SERIAL_ADDR_MSB;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else if(serial_byte == SERIAL_NAME)
+            {
+                serial_loader = SERIAL_NAME;
+                *operation = SERIAL_MAIN_NULL;
+            }
+            else if(serial_byte == SERIAL_BANK)
+            {
+                serial_loader = SERIAL_BANK;
                 *operation = SERIAL_MAIN_NULL;
             }
             else if(serial_byte == SERIAL_REBOOT)

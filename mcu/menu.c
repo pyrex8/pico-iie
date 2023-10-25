@@ -44,8 +44,8 @@ const static uint16_t line[] =
     0x050, 0x0D0, 0x150, 0x1D0, 0x250, 0x2D0, 0x350, 0x3D0,
 };
 
-static uint8_t menu_bank = 0;
-static uint8_t menu_file_name;
+static uint8_t name_index = 0;
+static uint16_t binary_index = 0;
 
 struct __attribute__((__packed__)) storage
 {
@@ -53,7 +53,7 @@ struct __attribute__((__packed__)) storage
     {
         uint8_t bank;
         uint8_t name[MENU_NAME_LENGTH];
-        uint16_t file_size;
+        uint16_t bin_size;
         uint16_t address;
     } menu;
     uint8_t binary[MENU_BIN_LENGTH];
@@ -111,23 +111,9 @@ void menu_init(void)
         flash_menu_read(i);
         menu[line[i] + MENU_BANK_NUMBER_COLUMN] = menu_select[i] + MENU_CHARACTER_OFFSET;
         menu_str_print(storage.menu.name, MENU_FILE_NAME_COLUMN, i);
-        menu_hex_print(storage.menu.file_size, MENU_FILE_SIZE_COLUMN, i);
+        menu_hex_print(storage.menu.bin_size, MENU_FILE_SIZE_COLUMN, i);
         menu_hex_print(storage.menu.address, MENU_BIN_ADDRESS_COLUMN, i);
     }
-
-    uint16_t value = FLASH_SECTOR_SIZE;
-    menu_hex_print(value, 10, 10);
-
-    uint8_t name[] = "FILE_NAME                    ";
-    memcpy(storage.menu.name, name, MENU_NAME_LENGTH);
-    menu_str_print(storage.menu.name, MENU_FILE_NAME_COLUMN, 0);
-    menu_hex_print(storage.menu.file_size, MENU_FILE_SIZE_COLUMN, 0);
-    menu_hex_print(storage.menu.address, MENU_BIN_ADDRESS_COLUMN, 0);
-}
-
-void menu_update(void)
-{
-
 }
 
 void menu_data_get(uint8_t *data)
@@ -138,9 +124,55 @@ void menu_data_get(uint8_t *data)
 void menu_bank_set(uint8_t data)
 {
     storage.menu.bank = data;
+    name_index = 0;
+    binary_index = 0;
 }
 
 void menu_name_set(uint8_t data)
 {
-    menu_file_name = data;
+    storage.menu.name[name_index] = data;
+    name_index++;
+    if (name_index == MENU_NAME_LENGTH)
+    {
+        name_index = 0;
+    }
+}
+
+void menu_bin_size_lsb(uint8_t data)
+{
+    storage.menu.bin_size &= 0xFF00;
+    storage.menu.bin_size |= data;
+}
+
+void menu_bin_size_msb(uint8_t data)
+{
+    storage.menu.bin_size &= 0x00FF;
+    storage.menu.bin_size |= (((uint16_t)data) << 8);
+}
+
+void menu_bin_addr_lsb(uint8_t data)
+{
+    storage.menu.address &= 0xFF00;
+    storage.menu.address |= data;
+}
+
+void menu_bin_addr_msb(uint8_t data)
+{
+    storage.menu.address &= 0x00FF;
+    storage.menu.address |= (((uint16_t)data) << 8);
+}
+
+void menu_bin_data_set(uint8_t data)
+{
+    storage.binary[binary_index] = data;
+    binary_index++;
+    if (binary_index == MENU_BIN_LENGTH)
+    {
+        binary_index = 0;
+    }
+}
+
+void menu_bin_store(void)
+{
+    // flash_data_save(storage.menu.bank);
 }

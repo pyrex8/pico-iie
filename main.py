@@ -77,7 +77,7 @@ if bin_name != "":
 
     bin_cmd = bytearray()
     bin_cmd.append(SERIAL_NAME)
-    for i in range(FILE_NAME_LENGTH):
+    for i in range(FILE_NAME_LENGTH + 1):
         bin_cmd.append(ord(file_name[i]))
     ser.write(bin_cmd)
 
