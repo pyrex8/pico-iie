@@ -24,6 +24,7 @@ typedef enum
     SERIAL_RAM_BIN_DATA,
     SERIAL_MENU_BANK,
     SERIAL_NAME_DATA,
+    SERIAL_MAIN_BIN_STORE,
     SERIAL_OPERATIONS_TOTAL,
 } SerialOperation;
 

@@ -61,6 +61,7 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_RAM_BIN_DATA]           = main_bin_data_set,
     [SERIAL_MENU_BANK]              = menu_bank_set,
     [SERIAL_NAME_DATA]              = menu_name_set,
+    [SERIAL_MAIN_BIN_STORE]         = main_store_bin,
 };
 
 static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
@@ -68,7 +69,7 @@ static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
     [PS2_MAIN_NULL]                 = main_null,
     [PS2_MAIN_PAUSE]                = main_pause,
     [PS2_MAIN_RESUME]               = main_resume,
-    [PS2_MAIN_RESET]                = main_reset,
+    [PS2_MAIN_RESET]                = main_store_bin, //main_reset,
     [PS2_MAIN_MENU]                 = main_menu,
     [PS2_MAIN_REBOOT]               = main_reboot,
 };
@@ -137,9 +138,13 @@ void main_menu(uint8_t unused)
 
 void main_start_bin(uint8_t unused)
 {
-    menu_bin_store();
     rom_reset_vector_write(ram_bin_addr_get());
     main_reset(0);
+}
+
+void main_store_bin(uint8_t unused)
+{
+    menu_bin_store();
 }
 
 void main_core1(void)

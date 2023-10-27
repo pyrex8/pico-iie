@@ -14,4 +14,5 @@ void main_bin_addr_msb(uint8_t data);
 void main_bin_data_set(uint8_t data);
 void main_start_bin(uint8_t unused);
 
+void main_store_bin(uint8_t unused);
 #endif /* __MAIN_H__ */

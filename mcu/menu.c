@@ -59,7 +59,6 @@ struct __attribute__((__packed__)) storage
     uint8_t binary[MENU_BIN_LENGTH];
 } storage;
 
-
 void flash_data_save(uint8_t bank)
 {
     const uint8_t *data = (const uint8_t *) &storage;
@@ -75,7 +74,6 @@ void flash_menu_read(uint8_t bank)
     const uint8_t* flash_target_contents = (const uint8_t *) (FLASH_TARGET_BASE + bank * FLASH_BANK_SIZE);
     memcpy(&storage.menu, flash_target_contents, MENU_PAGE_LENGTH);
 }
-
 
 void flash_data_read(uint8_t bank)
 {
@@ -174,5 +172,5 @@ void menu_bin_data_set(uint8_t data)
 
 void menu_bin_store(void)
 {
-    // flash_data_save(storage.menu.bank);
+    flash_data_save(storage.menu.bank);
 }

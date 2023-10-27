@@ -15,6 +15,8 @@ typedef enum
     SERIAL_REBOOT = 0x87,
     SERIAL_BANK = 0x88,
     SERIAL_NAME = 0x89,
+    SERIAL_BIN_START = 0x8A,
+    SERIAL_BIN_STORE = 0x8B,
 } SerialMode;
 
 static SerialMode serial_loader = SERIAL_READY;
@@ -49,7 +51,7 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             {
                 serial_loader = SERIAL_READY;
                 bin_data_counter = 0;
-                *operation = SERIAL_MAIN_START_BIN;
+                *operation = SERIAL_MAIN_NULL;
             }
             else
             {
@@ -143,6 +145,14 @@ void serial_update(SerialOperation *operation, uint8_t *data)
             else if(serial_byte == SERIAL_REBOOT)
             {
                 *operation = SERIAL_MAIN_REBOOT;
+            }
+            else if(serial_byte == SERIAL_BIN_START)
+            {
+                *operation = SERIAL_MAIN_START_BIN;
+            }
+            else if(serial_byte == SERIAL_BIN_STORE)
+            {
+                *operation = SERIAL_MAIN_BIN_STORE;
             }
             else
             {

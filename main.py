@@ -12,6 +12,7 @@ import serial
 bin_name = ""
 banks = "0123456789ABCDEFGHIJKLMN"
 bank = 0
+store = False
 file_name = "                        "
 
 SERIAL_BIN_DATA = 0x82
@@ -22,6 +23,8 @@ SERIAL_ADDR_MSB = 0x86
 SERIAL_REBOOT = 0x87
 SERIAL_BANK = 0x88
 SERIAL_NAME = 0x89
+SERIAL_BIN_START = 0x8A
+SERIAL_BIN_STORE = 0x8B
 
 FILE_NAME_LENGTH = 27
 
@@ -38,11 +41,16 @@ try:
     arg_name = str(sys.argv[1])
     file_name = arg_name[:-9] + file_name
     file_ext = arg_name[-3:]
-    arg_bank = str(sys.argv[2])[0:1]
-    bank = banks.find(arg_bank)
-    if bank < 0:
-        bank = 0
-    print("bank:", bank)
+
+    if len(sys.argv) > 2:
+        arg_bank = str(sys.argv[2])[0:1]
+        bank = banks.find(arg_bank)
+        if bank < 0:
+            bank = 0
+        store = True
+        print("bank:", bank)
+    else:
+        print("no bank specified")
     if  file_ext == 'bin':
         bin_name = arg_name
     print ("file name:", file_name)
@@ -120,7 +128,14 @@ if bin_name != "":
 
         bin_file.append(bin_data)
 
-    # add one byte at end to start binary
+    # add one byte at end
+    bin_file.append(0)
+
+    if store == True:
+        bin_file.append(SERIAL_BIN_STORE)
+    else:
+        bin_file.append(SERIAL_BIN_START)
+
     bin_file.append(0)
 
     bin_image.close()
