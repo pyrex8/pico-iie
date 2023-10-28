@@ -20,7 +20,10 @@
 #define PS2_F1_KEY 0x05
 #define PS2_F2_KEY 0x06
 #define PS2_F3_KEY 0x04
+#define PS2_F5_KEY 0x03
 #define PS2_F6_KEY 0x0B
+#define PS2_F7_KEY 0x83
+#define PS2_F8_KEY 0x0A
 #define PS2_F10_KEY 0x09
 
 #define A2E_UP_KEY 0x0B
@@ -134,32 +137,6 @@ void ps2_update(void)
                             {
                                 key_code += 0x20;
                             }
-
-                            if(ps2_data == PS2_F1_KEY)
-                            {
-                                ps2_operation = PS2_MAIN_PAUSE;
-                            }
-
-                            if(ps2_data == PS2_F2_KEY)
-                            {
-                                ps2_operation = PS2_MAIN_RESUME;
-                            }
-
-                            if(ps2_data == PS2_F3_KEY)
-                            {
-                                ps2_operation = PS2_MAIN_RESET;
-                            }
-
-                            if(ps2_data == PS2_F6_KEY)
-                            {
-                                ps2_operation = PS2_MAIN_MENU;
-                            }
-
-                            if(ps2_data == PS2_F10_KEY)
-                            {
-                                ps2_operation = PS2_MAIN_REBOOT;
-                            }
-
                             if(ps2_shift)
                             {
                                 key_code = keymap_iie_shift[ps2_data];
@@ -172,7 +149,38 @@ void ps2_update(void)
                                     ps2_operation = PS2_MAIN_REBOOT;
                                 }
                             }
-
+                        }
+                        if(ps2_data == PS2_F1_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_PAUSE;
+                        }
+                        if(ps2_data == PS2_F2_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_RESUME;
+                        }
+                        if(ps2_data == PS2_F3_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_RESET;
+                        }
+                        if(ps2_data == PS2_F5_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_MENU;
+                        }
+                        if(ps2_data == PS2_F6_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_MENU_UP;
+                        }
+                        if(ps2_data == PS2_F7_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_MENU_DOWN;
+                        }
+                        if(ps2_data == PS2_F8_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_MENU_SELECT;
+                        }
+                        if(ps2_data == PS2_F10_KEY)
+                        {
+                            ps2_operation = PS2_MAIN_REBOOT;
                         }
                     }
                     else
