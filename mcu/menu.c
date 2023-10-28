@@ -155,25 +155,25 @@ void menu_name_set(uint8_t data)
     }
 }
 
-void menu_bin_size_lsb(uint8_t data)
+void menu_bin_size_lsb_set(uint8_t data)
 {
     storage.menu.bin_size &= 0xFF00;
     storage.menu.bin_size |= data;
 }
 
-void menu_bin_size_msb(uint8_t data)
+void menu_bin_size_msb_set(uint8_t data)
 {
     storage.menu.bin_size &= 0x00FF;
     storage.menu.bin_size |= (((uint16_t)data) << 8);
 }
 
-void menu_bin_addr_lsb(uint8_t data)
+void menu_bin_addr_lsb_set(uint8_t data)
 {
     storage.menu.address &= 0xFF00;
     storage.menu.address |= data;
 }
 
-void menu_bin_addr_msb(uint8_t data)
+void menu_bin_addr_msb_set(uint8_t data)
 {
     storage.menu.address &= 0x00FF;
     storage.menu.address |= (((uint16_t)data) << 8);
@@ -187,6 +187,27 @@ void menu_bin_data_set(uint8_t data)
     {
         binary_index = 0;
     }
+}
+
+uint16_t menu_bin_size_get(void)
+{
+    return storage.menu.bin_size;
+}
+
+uint16_t menu_bin_addr_get(void)
+{
+    return storage.menu.address;
+}
+
+uint8_t menu_bin_data_get(void)
+{
+    uint8_t data = storage.binary[binary_index];
+    binary_index++;
+    if (binary_index == MENU_BIN_LENGTH)
+    {
+        binary_index = 0;
+    }
+    return data;
 }
 
 void menu_bin_store(void)
@@ -212,7 +233,8 @@ void menu_down(void)
     menu_select_update();
 }
 
-void menu_bin_select(uint8_t data)
+void menu_bin_select(void)
 {
-
+    flash_data_read(bank_select);
+    binary_index = 0;
 }

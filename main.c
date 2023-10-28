@@ -54,10 +54,10 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_MAIN_REBOOT]            = main_reboot,
     [SERIAL_MAIN_START_BIN]         = main_start_bin,
     [SERIAL_RAM_BIN_RESET]          = ram_bin_reset,
-    [SERIAL_RAM_BIN_SIZE_LSB]       = menu_bin_size_lsb,
-    [SERIAL_RAM_BIN_SIZE_MSB]       = menu_bin_size_msb,
-    [SERIAL_RAM_BIN_ADDR_LSB]       = main_bin_addr_lsb,
-    [SERIAL_RAM_BIN_ADDR_MSB]       = main_bin_addr_msb,
+    [SERIAL_RAM_BIN_SIZE_LSB]       = menu_bin_size_lsb_set,
+    [SERIAL_RAM_BIN_SIZE_MSB]       = menu_bin_size_msb_set,
+    [SERIAL_RAM_BIN_ADDR_LSB]       = main_bin_addr_lsb_set,
+    [SERIAL_RAM_BIN_ADDR_MSB]       = main_bin_addr_msb_set,
     [SERIAL_RAM_BIN_DATA]           = main_bin_data_set,
     [SERIAL_MENU_BANK]              = menu_bank_set,
     [SERIAL_NAME_DATA]              = menu_name_set,
@@ -73,7 +73,7 @@ static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
     [PS2_MAIN_MENU]                 = main_menu,
     [PS2_MAIN_MENU_UP]              = main_menu_up,
     [PS2_MAIN_MENU_DOWN]            = main_menu_down,
-    [PS2_MAIN_MENU_SELECT]          = menu_bin_select,
+    [PS2_MAIN_MENU_SELECT]          = main_menu_select,
     [PS2_MAIN_REBOOT]               = main_reboot,
 };
 
@@ -113,15 +113,15 @@ void main_resume(uint8_t unused)
     running = 1;
 }
 
-void main_bin_addr_lsb(uint8_t data)
+void main_bin_addr_lsb_set(uint8_t data)
 {
-    menu_bin_addr_lsb(data);
+    menu_bin_addr_lsb_set(data);
     ram_bin_addr_lsb(data);
 }
 
-void main_bin_addr_msb(uint8_t data)
+void main_bin_addr_msb_set(uint8_t data)
 {
-    menu_bin_addr_msb(data);
+    menu_bin_addr_msb_set(data);
     ram_bin_addr_msb(data);
 }
 
@@ -162,6 +162,18 @@ void main_menu_down(uint8_t unused)
     menu_down();
     menu_data_get(menu_data);
     ram_data_set(MENU_CHARACTERS_SIZE, 0x0400, menu_data);
+}
+
+void main_menu_select(uint8_t unused)
+{
+    menu_bin_select();
+    ram_bin_addr_set(menu_bin_addr_get());
+    uint16_t bin_size = menu_bin_size_get();
+    for (int i = 0; i < bin_size; i++)
+    {
+        ram_bin_data_set(menu_bin_data_get());
+    }
+    main_start_bin(0);
 }
 
 void main_core1(void)
