@@ -5,14 +5,14 @@
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
 
-#define JOYSTICK_SW0_PIN 22
-#define JOYSTICK_SW1_PIN 21
+#define JOYSTICK_SW0_PIN 21
+#define JOYSTICK_SW1_PIN 19
 #define JOYSTICK_SW0N_PIN 20
-#define JOYSTICK_SW1N_PIN 19
+#define JOYSTICK_SW1N_PIN 22
 #define JOYSTICK_X_PIN 27
-#define JOYSTICK_Y_PIN 26
+#define JOYSTICK_Y_PIN 28
 #define JOYSTICK_X_ADC 1
-#define JOYSTICK_Y_ADC 0
+#define JOYSTICK_Y_ADC 2
 
 #define JOYSTICK_ADC_FULL_COUNT 4095
 #define JOYSTICK_ADC_HALF_COUNT (JOYSTICK_ADC_FULL_COUNT >> 1)
