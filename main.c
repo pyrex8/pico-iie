@@ -71,8 +71,6 @@ static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
     [PS2_MAIN_RESUME]               = main_resume,
     [PS2_MAIN_RESET]                = main_reset,
     [PS2_MAIN_MENU]                 = main_menu,
-    [PS2_MAIN_MENU_UP]              = main_menu_up,
-    [PS2_MAIN_MENU_DOWN]            = main_menu_down,
     [PS2_MAIN_MENU_SELECT]          = main_menu_select,
     [PS2_MAIN_REBOOT]               = main_reboot,
 };
@@ -150,23 +148,11 @@ void main_store_bin(uint8_t unused)
     menu_bin_store();
 }
 
-void main_menu_up(uint8_t unused)
-{
-    menu_up();
-    menu_data_get(menu_data);
-    ram_data_set(MENU_CHARACTERS_SIZE, 0x0400, menu_data);
-}
-
-void main_menu_down(uint8_t unused)
-{
-    menu_down();
-    menu_data_get(menu_data);
-    ram_data_set(MENU_CHARACTERS_SIZE, 0x0400, menu_data);
-}
-
 void main_menu_select(uint8_t unused)
 {
-    menu_bin_select();
+    uint8_t line_number;
+    ram_data_get(1, 37, &line_number);
+    menu_bin_select(line_number);
     ram_bin_addr_set(menu_bin_addr_get());
     uint16_t bin_size = menu_bin_size_get();
     for (int i = 0; i < bin_size; i++)

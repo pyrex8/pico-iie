@@ -166,14 +166,6 @@ void ps2_update(void)
                         {
                             ps2_operation = PS2_MAIN_MENU;
                         }
-                        if(ps2_data == PS2_F6_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_MENU_UP;
-                        }
-                        if(ps2_data == PS2_F7_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_MENU_DOWN;
-                        }
                         if(ps2_data == PS2_F8_KEY)
                         {
                             ps2_operation = PS2_MAIN_MENU_SELECT;

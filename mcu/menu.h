@@ -16,8 +16,6 @@ uint16_t menu_bin_size_get(void);
 uint16_t menu_bin_addr_get(void);
 uint8_t menu_bin_data_get(void);
 void menu_bin_store(void);
-void menu_up(void);
-void menu_down(void);
-void menu_bin_select(void);
+void menu_bin_select(uint8_t bank_select);
 
 #endif /* __MENU_H__ */

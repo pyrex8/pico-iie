@@ -46,7 +46,6 @@ const static uint16_t line[] =
     0x050, 0x0D0, 0x150, 0x1D0, 0x250, 0x2D0, 0x350, 0x3D0,
 };
 
-static uint8_t bank_select = 0;
 static uint8_t name_index = 0;
 static uint16_t binary_index = 0;
 
@@ -109,11 +108,7 @@ void menu_select_update(void)
     uint8_t menu_char;
     for (int i = 0; i < sizeof(menu_select); i++)
     {
-        menu_char = menu_select[i];
-        if (i != bank_select)
-        {
-            menu_char += MENU_CHARACTER_OFFSET;
-        }
+        menu_char = menu_select[i] + MENU_CHARACTER_OFFSET;
         menu[line[i] + MENU_BANK_NUMBER_COLUMN] = menu_char;
     }
 }
@@ -129,7 +124,6 @@ void menu_init(void)
         menu_hex_print(storage.menu.address, MENU_BIN_ADDRESS_COLUMN, i);
     }
 
-    bank_select = MENU_BANKS_SELECT_DEFAULT;
     menu_select_update();
 }
 
@@ -215,25 +209,7 @@ void menu_bin_store(void)
     flash_data_save(storage.menu.bank);
 }
 
-void menu_up(void)
-{
-    if (bank_select > 0)
-    {
-        bank_select--;
-    }
-    menu_select_update();
-}
-
-void menu_down(void)
-{
-    if (bank_select < MENU_BANKS_SELECT_LAST)
-    {
-        bank_select++;
-    }
-    menu_select_update();
-}
-
-void menu_bin_select(void)
+void menu_bin_select(uint8_t bank_select)
 {
     flash_data_read(bank_select);
     binary_index = 0;
