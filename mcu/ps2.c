@@ -17,13 +17,11 @@
 #define PS2_DOWN_KEY 0x72
 #define PS2_LEFT_KEY 0x6B
 #define PS2_RIGHT_KEY 0x74
+#define PS2_ENTER_KEY 0x5A
 #define PS2_F1_KEY 0x05
 #define PS2_F2_KEY 0x06
 #define PS2_F3_KEY 0x04
 #define PS2_F5_KEY 0x03
-#define PS2_F6_KEY 0x0B
-#define PS2_F7_KEY 0x83
-#define PS2_F8_KEY 0x0A
 #define PS2_F10_KEY 0x09
 
 #define A2E_UP_KEY 0x0B
@@ -41,6 +39,7 @@ static uint8_t ps2_key_up = 0;
 static uint8_t ps2_shift = 0;
 static uint8_t ps2_ctrl = 0;
 static uint8_t ps2_caplock = 0;
+static uint8_t menu_enabled = 0;
 
 static uint8_t key_code = 0;
 
@@ -150,6 +149,11 @@ void ps2_update(void)
                                 }
                             }
                         }
+                        if(menu_enabled && ps2_data == PS2_ENTER_KEY)
+                        {
+                            menu_enabled = 0;
+                            ps2_operation = PS2_MAIN_MENU_SELECT;
+                        }
                         if(ps2_data == PS2_F1_KEY)
                         {
                             ps2_operation = PS2_MAIN_PAUSE;
@@ -164,11 +168,8 @@ void ps2_update(void)
                         }
                         if(ps2_data == PS2_F5_KEY)
                         {
+                            menu_enabled = 1;
                             ps2_operation = PS2_MAIN_MENU;
-                        }
-                        if(ps2_data == PS2_F8_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_MENU_SELECT;
                         }
                         if(ps2_data == PS2_F10_KEY)
                         {
