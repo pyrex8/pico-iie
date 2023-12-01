@@ -18,11 +18,12 @@
 #define PS2_LEFT_KEY 0x6B
 #define PS2_RIGHT_KEY 0x74
 #define PS2_ENTER_KEY 0x5A
-#define PS2_F1_KEY 0x05
-#define PS2_F2_KEY 0x06
-#define PS2_F3_KEY 0x04
-#define PS2_F5_KEY 0x03
-#define PS2_F10_KEY 0x09
+
+#define PS2_ESC_KEY 0x76
+#define PS2_BACKSPACE_KEY 0x66      // replace with delete
+#define PS2_TAB_KEY 0x0D
+#define PS2_F1_KEY 0x05             // replace with CNTL-RESET
+#define PS2_F10_KEY 0x09            // replace with OPAPL-CNTL-RESET
 
 #define A2E_UP_KEY 0x0B
 #define A2E_DOWN_KEY 0x0A
@@ -147,33 +148,29 @@ void ps2_update(void)
                                 {
                                     ps2_operation = PS2_MAIN_REBOOT;
                                 }
+                                if(ps2_data == PS2_F1_KEY)
+                                {
+                                    ps2_operation = PS2_MAIN_RESET;
+                                }
+                                if(ps2_data == PS2_ESC_KEY)
+                                {
+                                    ps2_operation = PS2_MAIN_PAUSE;
+                                }
+                                if(ps2_data == PS2_TAB_KEY)
+                                {
+                                    ps2_operation = PS2_MAIN_RESUME;
+                                }
+                                if(ps2_data == PS2_BACKSPACE_KEY)
+                                {
+                                    menu_enabled = 1;
+                                    ps2_operation = PS2_MAIN_MENU;
+                                }
                             }
                         }
                         if(menu_enabled && ps2_data == PS2_ENTER_KEY)
                         {
                             menu_enabled = 0;
                             ps2_operation = PS2_MAIN_MENU_SELECT;
-                        }
-                        if(ps2_data == PS2_F1_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_PAUSE;
-                        }
-                        if(ps2_data == PS2_F2_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_RESUME;
-                        }
-                        if(ps2_data == PS2_F3_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_RESET;
-                        }
-                        if(ps2_data == PS2_F5_KEY)
-                        {
-                            menu_enabled = 1;
-                            ps2_operation = PS2_MAIN_MENU;
-                        }
-                        if(ps2_data == PS2_F10_KEY)
-                        {
-                            ps2_operation = PS2_MAIN_REBOOT;
                         }
                     }
                     else
