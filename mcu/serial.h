@@ -8,8 +8,8 @@
 #define UART_BAUD_RATE_AT_MODE 9600
 #define UART_BAUD_RATE 115200
 
-#define UART_TX_PIN 0
-#define UART_RX_PIN 1
+#define UART_TX_PIN 16
+#define UART_RX_PIN 17
 
 typedef enum
 {

@@ -4,8 +4,8 @@
 #include "ps2.h"
 #include "pico/stdlib.h"
 
-#define PS2_DATA_PIN 17
-#define PS2_SCK_PIN 18
+#define PS2_DATA_PIN 14
+#define PS2_SCK_PIN 15
 
 #define PS2_ASCII_MAP_SIZE 0x77
 #define PS2_SHIFT_KEY 0x12

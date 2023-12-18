@@ -10,7 +10,7 @@ loop:
 % c-sdk {
 static inline void parallel_program_init(PIO pio, uint sm, uint offset, uint pin) {
     pio_sm_config c = parallel_program_get_default_config(offset);
-    for(uint i = 7; i < 16; i++) {
+    for(uint i = 5; i < 14; i++) {
         pio_gpio_init(pio, i);
     }
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 9, true);

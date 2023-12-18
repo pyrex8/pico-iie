@@ -5,14 +5,14 @@
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
 
-#define JOYSTICK_SW0_PIN 21
-#define JOYSTICK_SW1_PIN 19
-#define JOYSTICK_SW0N_PIN 20
-#define JOYSTICK_SW1N_PIN 22
+#define JOYSTICK_SW0_PIN 20
+#define JOYSTICK_SW1_PIN 22
+#define JOYSTICK_SW2_PIN 21
+#define JOYSTICK_SW3_PIN 19
 #define JOYSTICK_X_PIN 27
-#define JOYSTICK_Y_PIN 28
+#define JOYSTICK_Y_PIN 26
 #define JOYSTICK_X_ADC 1
-#define JOYSTICK_Y_ADC 2
+#define JOYSTICK_Y_ADC 0
 
 #define JOYSTICK_ADC_FULL_COUNT 4095
 #define JOYSTICK_ADC_HALF_COUNT (JOYSTICK_ADC_FULL_COUNT >> 1)
@@ -32,18 +32,18 @@ void joystick_init(void)
 {
     gpio_init(JOYSTICK_SW0_PIN);
     gpio_init(JOYSTICK_SW1_PIN);
-    gpio_init(JOYSTICK_SW0N_PIN);
-    gpio_init(JOYSTICK_SW1N_PIN);
+    gpio_init(JOYSTICK_SW2_PIN);
+    gpio_init(JOYSTICK_SW3_PIN);
 
     gpio_set_dir(JOYSTICK_SW0_PIN, GPIO_IN);
     gpio_set_dir(JOYSTICK_SW1_PIN, GPIO_IN);
-    gpio_set_dir(JOYSTICK_SW0N_PIN, GPIO_IN);
-    gpio_set_dir(JOYSTICK_SW1N_PIN, GPIO_IN);
+    gpio_set_dir(JOYSTICK_SW2_PIN, GPIO_IN);
+    gpio_set_dir(JOYSTICK_SW3_PIN, GPIO_IN);
  
     gpio_pull_down(JOYSTICK_SW0_PIN);
     gpio_pull_down(JOYSTICK_SW1_PIN);
-    gpio_pull_up(JOYSTICK_SW0N_PIN);
-    gpio_pull_up(JOYSTICK_SW1N_PIN);
+    gpio_pull_up(JOYSTICK_SW2_PIN);
+    gpio_pull_up(JOYSTICK_SW3_PIN);
 
     adc_init();
     gpio_set_dir(JOYSTICK_X_PIN, GPIO_IN);
@@ -56,8 +56,8 @@ void joystick_update(void)
 {
     joystick_btn0 = gpio_get(JOYSTICK_SW0_PIN) ? 1 : 0;
     joystick_btn1 = gpio_get(JOYSTICK_SW1_PIN) ? 1 : 0;
-    joystick_btn0n = gpio_get(JOYSTICK_SW0N_PIN) ? 0 : 1;
-    joystick_btn1n = gpio_get(JOYSTICK_SW1N_PIN) ? 0 : 1;
+    joystick_btn0n = gpio_get(JOYSTICK_SW2_PIN) ? 0 : 1;
+    joystick_btn1n = gpio_get(JOYSTICK_SW3_PIN) ? 0 : 1;
 
     adc_select_input(JOYSTICK_X_ADC);
     uint16_t joy_x = adc_read();

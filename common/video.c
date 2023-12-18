@@ -19,10 +19,10 @@
 #define H_BUFFER_VISIBLE 35
 
 #define VGA_BLACK  0x0000
-#define VGA_GREEN  0x00B0
-#define VGA_PURPLE 0x014F
-#define VGA_ORANGE 0x01D0
-#define VGA_BLUE   0x002F
+#define VGA_GREEN  0x0032
+#define VGA_PURPLE 0x01CD
+#define VGA_ORANGE 0x0017
+#define VGA_BLUE   0x01E8
 #define VGA_WHITE  0x01FF
 
 enum HCOLOR
