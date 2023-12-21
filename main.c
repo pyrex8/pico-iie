@@ -18,7 +18,7 @@
 #include "mcu/clock.h"
 #include "mcu/test.h"
 #include "mcu/joystick.h"
-#include "mcu/keys.h"
+#include "mcu/key.h"
 #include "mcu/menu.h"
 #include "mcu/serial.h"
 #include "mcu/speaker.h"
@@ -45,7 +45,7 @@ static int16_t overscan_line;
 static uint8_t overscan_line_odd;
 
 static SerialOperation serial_operation;
-// static Ps2Operation ps2_operation;
+static KeyOperation key_operation;
 static uint8_t operation_data;
 
 static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t data) =
@@ -64,16 +64,15 @@ static const void (*main_serial_operation[SERIAL_OPERATIONS_TOTAL]) (uint8_t dat
     [SERIAL_MAIN_BIN_STORE]         = main_store_bin,
 };
 
-// static const void (*main_ps2_operation[PS2_OPERATIONS_TOTAL]) (uint8_t data) =
-// {
-//     [PS2_MAIN_NULL]                 = main_null,
-//     [PS2_MAIN_PAUSE]                = main_pause,
-//     [PS2_MAIN_RESUME]               = main_resume,
-//     [PS2_MAIN_RESET]                = main_reset,
-//     [PS2_MAIN_MENU]                 = main_menu,
-//     [PS2_MAIN_MENU_SELECT]          = main_menu_select,
-//     [PS2_MAIN_REBOOT]               = main_reboot,
-// };
+static const void (*main_key_operation[KEY_OPERATIONS_TOTAL]) (uint8_t data) =
+{
+    [KEY_MAIN_NULL]                 = main_null,
+    [KEY_MAIN_PAUSE]                = main_pause,
+    [KEY_MAIN_RESUME]               = main_resume,
+    [KEY_MAIN_RESET]                = main_reset,
+    [KEY_MAIN_MENU]                 = main_menu,
+    [KEY_MAIN_MENU_SELECT]          = main_menu_select,
+};
 
 void main_init(void)
 {
@@ -191,7 +190,7 @@ int main(void)
     test_pin_init();
     serial_init();
     joystick_init();
-    keys_init();
+    key_init();
 
     main_init();
 
@@ -207,7 +206,7 @@ int main(void)
         video_scan_line_set(scan_line);
         overscan_line_odd = vga_overscan_line_is_odd();
 
-        keys_update();
+        key_update();
 
         if (overscan_line_odd)
         {
@@ -224,13 +223,8 @@ int main(void)
         serial_update(&serial_operation, &operation_data);
         (*main_serial_operation[serial_operation]) (operation_data);
 
-        // ps2_command(&ps2_operation, &operation_data);
-        // (*main_ps2_operation[ps2_operation]) (operation_data);
-
-        // if (ps2_data_ready())
-        // {
-        //     keyboard_key_code_set(ps2_data_get());
-        // }
+        key_command(&key_operation, &operation_data);
+        (*main_key_operation[key_operation]) (operation_data);
 
         if (vga_scan_line_get() == 0)
         {
@@ -246,10 +240,9 @@ int main(void)
             test_pin_low();
         }
 
-        if (scan_line == 0 && keys_data_waiting())
+        if (scan_line == 0 && key_data_waiting())
         {
-            keyboard_key_code_set(keys_data_get());
+            keyboard_key_code_set(key_data_get());
         }
-        
     }
 }

@@ -1,14 +1,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include "keys.h"
+#include "key.h"
 #include "pico/stdlib.h"
 
-#define KEYS_DATA_PIN 14
-#define KEYS_SCK_PIN 15
-#define KEYS_MATRIX_MASK 0x7F
-#define KEYS_MATRIX_TOTAL (KEYS_MATRIX_MASK + 1)
-#define KEYS_MATRIX_VALID (KEYS_MATRIX_TOTAL - 0x10)
+#define KEY_DATA_PIN 14
+#define KEY_SCK_PIN 15
+#define KEY_MATRIX_MASK 0x7F
+#define KEY_MATRIX_TOTAL (KEY_MATRIX_MASK + 1)
+#define KEY_MATRIX_VALID (KEY_MATRIX_TOTAL - 0x10)
 
 // Apple IIe keyboard codes
 #define UP   0x0B
@@ -21,29 +21,31 @@
 #define DEL  0x7F
 
 // Matrix scan codes index
-#define KEYS_SHIFT 0xC0 >> 1
-#define KEYS_CTRL 0x70 >> 1
-#define KEYS_CAPS_LOCK 0x50 >> 1
-#define KEYS_RESET 0x90 >> 1
+#define KEY_SHIFT 0xC0 >> 1
+#define KEY_CTRL 0x70 >> 1
+#define KEY_CAPS_LOCK 0x50 >> 1
+#define KEY_RESET 0x90 >> 1
 
-#define KEYS_OFFSET_CAPS_LOCK_ON  0x00
-#define KEYS_OFFSET_CAPS_LOCK_OFF 0x70
-#define KEYS_OFFSET_CAPS_SHIFT    0xE0
+#define KEY_OFFSET_CAPS_LOCK_ON  0x00
+#define KEY_OFFSET_CAPS_LOCK_OFF 0x70
+#define KEY_OFFSET_CAPS_SHIFT    0xE0
 
-uint8_t keys_clk_state = 1;
-uint8_t keys_index = 0;
-uint8_t keys_waiting = 0;
-uint8_t keys_ones = 0;
-uint8_t keys_data[KEYS_MATRIX_TOTAL] = {0};
-uint8_t keys_pressed[KEYS_MATRIX_TOTAL] = {0};
-uint8_t keys_used[KEYS_MATRIX_TOTAL] = {0};
-uint8_t keys_iie_offset = 0;
+uint8_t key_clk_state = 1;
+uint8_t key_index = 0;
+uint8_t key_waiting = 0;
+uint8_t key_ones = 0;
+uint8_t key_data[KEY_MATRIX_TOTAL] = {0};
+uint8_t key_pressed[KEY_MATRIX_TOTAL] = {0};
+uint8_t key_used[KEY_MATRIX_TOTAL] = {0};
+uint8_t key_iie_offset = 0;
 
-static uint8_t keys_shift = 0;
-static uint8_t keys_ctrl = 0;
-static uint8_t keys_caplock = 1;
+static uint8_t key_shift = 0;
+static uint8_t key_ctrl = 0;
+static uint8_t key_caplock = 1;
 
-static const uint8_t keys_iie[KEYS_MATRIX_VALID * 3] =
+static KeyOperation key_operation;
+
+static const uint8_t key_iie[KEY_MATRIX_VALID * 3] =
 {
 // Caps lock on (default on power up)
 
@@ -102,116 +104,128 @@ static const uint8_t keys_iie[KEYS_MATRIX_VALID * 3] =
     UP,  '+',  ',',  'P',  'U', DOWN,  'K',  '&', //0xD
 };
 
-void keys_init(void)
+void key_init(void)
 {
-    gpio_init(KEYS_DATA_PIN);
-    gpio_init(KEYS_SCK_PIN);
-    gpio_set_dir(KEYS_DATA_PIN, GPIO_IN);
-    gpio_set_dir(KEYS_SCK_PIN, GPIO_OUT);
+    gpio_init(KEY_DATA_PIN);
+    gpio_init(KEY_SCK_PIN);
+    gpio_set_dir(KEY_DATA_PIN, GPIO_IN);
+    gpio_set_dir(KEY_SCK_PIN, GPIO_OUT);
 }
 
-void keys_clk_low(void)
+void key_clk_low(void)
 {
-    gpio_put(KEYS_SCK_PIN, 0);
+    gpio_put(KEY_SCK_PIN, 0);
 }
 
-void keys_clk_high(void)
+void key_clk_high(void)
 {
-    gpio_put(KEYS_SCK_PIN, 1);
+    gpio_put(KEY_SCK_PIN, 1);
 }
 
-void keys_update(void)
+void key_update(void)
 {
-    keys_clk_state ^= 1;
-    if (keys_clk_state)
+    key_clk_state ^= 1;
+    if (key_clk_state)
     {
-        keys_clk_high();
+        key_clk_high();
         return;
     }
 
-    keys_clk_low();
+    key_clk_low();
 
     // 16 zeros in a row marks the end of the keyboard matrix scan
-    uint8_t key_test = gpio_get(KEYS_DATA_PIN) == 0? 1 : 0;
+    uint8_t key_test = gpio_get(KEY_DATA_PIN) == 0? 1 : 0;
     if (key_test)
     {
-        keys_ones++;
+        key_ones++;
 
-        if (keys_index == KEYS_SHIFT)
+        if (key_index == KEY_SHIFT)
         {
-            keys_shift = 1;
+            key_shift = 1;
         }
 
-        if (keys_data[keys_index] == 0)
+        if (key_index == KEY_RESET)
         {
-            if (keys_index == KEYS_CAPS_LOCK)
+            key_operation = KEY_MAIN_RESET;
+        }
+
+        if (key_data[key_index] == 0)
+        {
+            if (key_index == KEY_CAPS_LOCK)
             {
-                keys_caplock ^= 1;
+                key_caplock ^= 1;
             }
             else
             {
-                keys_pressed[keys_index] = key_test;
-                if (keys_index < KEYS_MATRIX_VALID)
+                key_pressed[key_index] = key_test;
+                if (key_index < KEY_MATRIX_VALID)
                 {
-                    keys_waiting = keys_index;
+                    key_waiting = key_index;
                 }
             }
         }
-        keys_data[keys_index] = key_test;
+        key_data[key_index] = key_test;
     }
     else
     {
-        keys_ones = 0;
+        key_ones = 0;
 
-        if (keys_index == KEYS_SHIFT)
+        if (key_index == KEY_SHIFT)
         {
-            keys_shift = 0;
+            key_shift = 0;
         }
 
-        keys_pressed[keys_index] = key_test;
-        keys_used[keys_index] = key_test;
-        keys_data[keys_index] = key_test;
+        key_pressed[key_index] = key_test;
+        key_used[key_index] = key_test;
+        key_data[key_index] = key_test;
     }
 
-    if (keys_ones == 16)
+    if (key_ones == 16)
     {
-        keys_index = 0;
+        key_index = 0;
     }
     else
     {
-        keys_index = (keys_index + 1) & KEYS_MATRIX_MASK;
+        key_index = (key_index + 1) & KEY_MATRIX_MASK;
     }
 }
 
-uint8_t keys_data_waiting(void)
+void key_command(KeyOperation *operation, uint8_t *data)
 {
-    if (keys_used[keys_waiting] == 0)
+    *operation = key_operation;
+    key_operation = KEY_MAIN_NULL;
+    *data = 0;
+}
+
+uint8_t key_data_waiting(void)
+{
+    if (key_used[key_waiting] == 0)
     {
-        return keys_waiting;
+        return key_waiting;
     }
     return 0;
 }
 
-uint8_t keys_data_get(void)
+uint8_t key_data_get(void)
 {
     uint8_t key = 0;
 
-    if (keys_caplock)
+    if (key_caplock)
     {
-        keys_iie_offset = KEYS_OFFSET_CAPS_LOCK_ON;
+        key_iie_offset = KEY_OFFSET_CAPS_LOCK_ON;
     }
     else
     {
-        keys_iie_offset = KEYS_OFFSET_CAPS_LOCK_OFF;
+        key_iie_offset = KEY_OFFSET_CAPS_LOCK_OFF;
     }
 
-    if (keys_shift)
+    if (key_shift)
     {
-        keys_iie_offset = KEYS_OFFSET_CAPS_SHIFT;
+        key_iie_offset = KEY_OFFSET_CAPS_SHIFT;
     }
 
-    key = keys_iie[keys_waiting + keys_iie_offset];
-    keys_used[keys_waiting] = 1;
-    keys_waiting = 0;
+    key = key_iie[key_waiting + key_iie_offset];
+    key_used[key_waiting] = 1;
+    key_waiting = 0;
     return key;
 }
