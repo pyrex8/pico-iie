@@ -21,10 +21,14 @@
 #define DEL  0x7F
 
 // Matrix scan codes index
-#define KEY_SHIFT 0xC0 >> 1
-#define KEY_CTRL 0x70 >> 1
-#define KEY_CAPS_LOCK 0x50 >> 1
-#define KEY_RESET 0x90 >> 1
+#define KEY_SHIFT 0x60
+#define KEY_CTRL 0x38
+#define KEY_CAPS_LOCK 0x28
+#define KEY_RESET 0x48
+#define KEY_ESC 0x07
+#define KEY_TAB 0x04
+#define KEY_DEL 0x5D
+#define KEY_RTN 0x58
 
 #define KEY_OFFSET_CAPS_LOCK_ON  0x00
 #define KEY_OFFSET_CAPS_LOCK_OFF 0x70
@@ -42,6 +46,7 @@ uint8_t key_iie_offset = 0;
 static uint8_t key_shift = 0;
 static uint8_t key_ctrl = 0;
 static uint8_t key_caplock = 1;
+static uint8_t menu_enabled = 0;
 
 static KeyOperation key_operation;
 
@@ -139,9 +144,38 @@ void key_update(void)
     {
         key_ones++;
 
+        if (menu_enabled == 1 && key_index == KEY_RTN)
+        {
+            menu_enabled = 0;
+            key_operation = KEY_MAIN_MENU_SELECT;
+        }
+
+        if (key_ctrl == 1)
+        {
+            if (key_index == KEY_ESC)
+            {
+                key_operation = KEY_MAIN_PAUSE;
+            }
+            if (key_index == KEY_TAB)
+            {
+                key_operation = KEY_MAIN_RESUME;
+            }
+
+            if (key_index == KEY_DEL)
+            {
+                menu_enabled = 1;
+                key_operation = KEY_MAIN_MENU;
+            }
+        }
+
         if (key_index == KEY_SHIFT)
         {
             key_shift = 1;
+        }
+
+        if (key_index == KEY_CTRL)
+        {
+            key_ctrl = 1;
         }
 
         if (key_index == KEY_RESET)
@@ -173,6 +207,11 @@ void key_update(void)
         if (key_index == KEY_SHIFT)
         {
             key_shift = 0;
+        }
+
+        if (key_index == KEY_CTRL)
+        {
+            key_ctrl = 0;
         }
 
         key_pressed[key_index] = key_test;
