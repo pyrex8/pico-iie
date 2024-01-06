@@ -178,6 +178,11 @@ void key_update(void)
             key_ctrl = 1;
         }
 
+        if (key_index == KEY_CAPS_LOCK)
+        {
+            key_caplock = 1;
+        }
+
         if (key_index == KEY_RESET)
         {
             key_operation = KEY_MAIN_RESET;
@@ -185,17 +190,10 @@ void key_update(void)
 
         if (key_data[key_index] == 0)
         {
-            if (key_index == KEY_CAPS_LOCK)
+            key_pressed[key_index] = key_test;
+            if (key_index < KEY_MATRIX_VALID)
             {
-                key_caplock ^= 1;
-            }
-            else
-            {
-                key_pressed[key_index] = key_test;
-                if (key_index < KEY_MATRIX_VALID)
-                {
-                    key_waiting = key_index;
-                }
+                key_waiting = key_index;
             }
         }
         key_data[key_index] = key_test;
@@ -212,6 +210,11 @@ void key_update(void)
         if (key_index == KEY_CTRL)
         {
             key_ctrl = 0;
+        }
+
+        if (key_index == KEY_CAPS_LOCK)
+        {
+            key_caplock = 0;
         }
 
         key_pressed[key_index] = key_test;
