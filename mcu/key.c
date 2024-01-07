@@ -133,10 +133,9 @@ static const uint8_t key_iie[KEY_MATRIX_TOTAL * 4] =
 static uint8_t key_clk_state = 1;
 static uint8_t key_test = 0;
 static uint8_t key_index = 0;
+static uint8_t key_index_last = 0;
 static uint8_t key_index_waiting = 0;
 static uint8_t key_presses_consecutive = KEY_PRESSES_RESET;
-static uint8_t key_data[KEY_MATRIX_TOTAL] = {KEY_DATA_EMPTY};
-static uint8_t key_used[KEY_MATRIX_TOTAL] = {KEY_USED_FALSE};
 
 static uint8_t key_shift = 0;
 static uint8_t key_ctrl = 0;
@@ -203,12 +202,6 @@ void operation_test(void)
     }
 }
 
-void key_not_pressed(void)
-{
-    key_used[key_index] = KEY_USED_FALSE;
-    key_data[key_index] = KEY_DATA_EMPTY;
-}
-
 void shift_key_test(void)
 {
     if (key_index == KEY_SHIFT)
@@ -260,19 +253,21 @@ void key_update(void)
 
         operation_test();
 
-        if (key_data[key_index] == KEY_DATA_EMPTY)
+        if ((key_index < KEY_MATRIX_VALID) && (key_index_last != key_index))
         {
-            if (key_index < KEY_MATRIX_VALID)
+            if (key_iie[(uint16_t)key_index] != 0)
             {
                 key_index_waiting = key_index;
             }
         }
-        key_data[key_index] = key_test;
     }
     else
     {
+        if (key_index_last == key_index)
+        {
+            key_index_last = 0;
+        }
         key_presses_consecutive = KEY_PRESSES_RESET;
-        key_not_pressed();
     }
 
     shift_key_test();
@@ -292,11 +287,7 @@ void key_command(KeyOperation *operation, uint8_t *data)
 
 uint8_t key_data_waiting(void)
 {
-    if (key_used[key_index_waiting] == KEY_USED_FALSE)
-    {
-        return key_index_waiting;
-    }
-    return 0;
+    return key_index_waiting;
 }
 
 uint8_t key_data_get(void)
@@ -308,7 +299,7 @@ uint8_t key_data_get(void)
     key_iie_offset |= key_shift * KEY_OFFSET_CAPS_SHIFT;
 
     key = key_iie[(uint16_t)key_index_waiting + key_iie_offset];
-    key_used[key_index_waiting] = KEY_USED_TRUE;
+    key_index_last = key_index_waiting;
     key_index_waiting = 0;
     return key;
 }
