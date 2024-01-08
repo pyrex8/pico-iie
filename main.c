@@ -237,6 +237,8 @@ int main(void)
             
             serial_state_send();
 
+            key_scan_start();
+
             test_pin_low();
         }
 

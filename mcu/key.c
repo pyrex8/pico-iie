@@ -14,6 +14,10 @@
 #define KEY_PRESSES_RESET 0
 #define KEY_PRESSES_MAX 16
 
+#define KEY_REPEAT_DELAY_SCANS 48
+#define KEY_REPEAT_SCANS 4
+#define KEY_REPEAT_SCAN_COUNT (KEY_REPEAT_DELAY_SCANS + KEY_REPEAT_SCANS)
+
 // Apple IIe keyboard codes
 #define UP   0x0B
 #define DOWN 0x0A
@@ -130,12 +134,15 @@ static const uint8_t key_iie[KEY_MATRIX_TOTAL * 4] =
 };
 
 // Variables ------------------------------------------------------------------
-static uint8_t key_clk_state = 1;
+static bool key_scanning = false;
+static uint8_t key_clk_state = 0;
 static uint8_t key_test = 0;
 static uint8_t key_index = 0;
 static uint8_t key_index_last = 0;
+static bool key_index_last_released = false;
 static uint8_t key_index_waiting = 0;
 static uint8_t key_presses_consecutive = KEY_PRESSES_RESET;
+static uint8_t key_repeat_scan_counter = 0
 
 static uint8_t key_shift = 0;
 static uint8_t key_ctrl = 0;
@@ -163,6 +170,7 @@ void index_update(void)
     if (end_of_scan)
     {
         key_index = 0;
+        key_scanning = false;
     }
     else
     {
@@ -235,8 +243,18 @@ void key_init(void)
     gpio_set_dir(KEY_SCK_PIN, GPIO_OUT);
 }
 
+void key_scan_start(void)
+{
+    key_scanning = true;
+}
+
 void key_update(void)
 {
+    if (key_scanning == false)
+    {
+        return;
+    }
+
     key_clk_state ^= 1;
     if (key_clk_state)
     {
@@ -253,6 +271,7 @@ void key_update(void)
 
         operation_test();
 
+        // key_index_last_released
         if ((key_index < KEY_MATRIX_VALID) && (key_index_last != key_index))
         {
             if (key_iie[(uint16_t)key_index] != 0)
@@ -265,7 +284,7 @@ void key_update(void)
     {
         if (key_index_last == key_index)
         {
-            key_index_last = 0;
+            key_index_last_released = true;
         }
         key_presses_consecutive = KEY_PRESSES_RESET;
     }
