@@ -142,7 +142,7 @@ static uint8_t key_index_last = 0;
 static bool key_index_last_released = false;
 static uint8_t key_index_waiting = 0;
 static uint8_t key_presses_consecutive = KEY_PRESSES_RESET;
-static uint8_t key_repeat_scan_counter = 0
+static uint8_t key_repeat_scan_counter = 0;
 
 static uint8_t key_shift = 0;
 static uint8_t key_ctrl = 0;
