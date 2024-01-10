@@ -285,6 +285,7 @@ void key_update(void)
         if (key_index_last == key_index)
         {
             key_index_last_released = true;
+            key_index_last = 0;
         }
         key_presses_consecutive = KEY_PRESSES_RESET;
     }
