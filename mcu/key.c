@@ -272,11 +272,12 @@ void key_update(void)
         operation_test();
 
         // key_index_last_released
-        if ((key_index < KEY_MATRIX_VALID) && (key_index_last != key_index))
+        if ((key_index < KEY_MATRIX_VALID) && (key_index_last_released == true))
         {
             if (key_iie[(uint16_t)key_index] != 0)
             {
                 key_index_waiting = key_index;
+                key_index_last_released = false;
             }
         }
     }
